@@ -64,7 +64,7 @@ const NOTES: SeedNote[] = [
     categories: ['Travel'],
   },
   {
-    title: 'Welcome to Notes',
+    title: 'Welcome to Nook',
     content: WELCOME_CONTENT,
     emoji: '👋',
     categories: [],
