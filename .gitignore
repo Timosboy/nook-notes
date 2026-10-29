@@ -39,3 +39,6 @@ AGENTS.md
 skills/
 *.chat.md
 *.transcript.*
+
+# local run output
+.run/
