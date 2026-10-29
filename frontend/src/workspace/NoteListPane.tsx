@@ -40,10 +40,11 @@ export function NoteListPane({
 
       {children ?? (
         <ul className="note-rows">
-          {notes.map((note) => (
+          {notes.map((note, index) => (
             <NoteRow
               key={note.id}
               note={note}
+              order={index}
               selected={note.id === selectedId}
               onSelect={() => onSelect(note.id)}
             />

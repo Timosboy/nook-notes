@@ -817,3 +817,36 @@
     padding-top: 20px;
   }
 }
+
+/* Motion */
+
+.note-row-item {
+  animation: rise 240ms ease-out both;
+  animation-delay: calc(var(--order) * 30ms);
+}
+
+.document,
+.home {
+  animation: fade-in 220ms ease-out;
+}
+
+.document-icon,
+.recent-card {
+  animation: rise 280ms ease-out both;
+}
+
+.recent-grid li:nth-child(2) .recent-card {
+  animation-delay: 40ms;
+}
+
+.recent-grid li:nth-child(3) .recent-card {
+  animation-delay: 80ms;
+}
+
+.properties .chip {
+  animation: pop 160ms ease-out;
+}
+
+.nav-item {
+  transition: background-color 150ms, color 150ms, box-shadow 150ms;
+}
