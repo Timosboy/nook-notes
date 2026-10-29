@@ -1,5 +1,7 @@
 import { useRef, useState } from 'react'
+import { Toast } from '../components/Toast'
 import { useShortcut } from '../lib/useShortcut'
+import { useToast } from '../lib/useToast'
 import { notesApi } from '../notes/api'
 import { NotesEmpty, NotesError, NotesLoading } from '../notes/components/NoteStates'
 import type { Note, NoteInput } from '../notes/types'
@@ -37,6 +39,7 @@ export function Workspace() {
   const [actionError, setActionError] = useState<string | null>(null)
   const [query, setQuery] = useState('')
   const searchRef = useRef<HTMLInputElement>(null)
+  const { toast, show: showToast, dismiss: dismissToast } = useToast()
 
   const current = view === 'active' ? active : archived
   const copy = VIEW_COPY[view]
@@ -70,8 +73,43 @@ export function Workspace() {
     }
   }
 
+  const listFor = (note: Note) => (note.archived ? archived : active)
+
   async function saveNote(id: string, input: NoteInput) {
-    current.upsert(await notesApi.update(id, input))
+    const note = await notesApi.update(id, input)
+    listFor(note).upsert(note)
+  }
+
+  async function moveNote(note: Note) {
+    const moved = note.archived ? await notesApi.unarchive(note.id) : await notesApi.archive(note.id)
+    listFor(note).drop(note.id)
+    listFor(moved).upsert(moved)
+    return moved
+  }
+
+  async function toggleArchive(note: Note) {
+    setActionError(null)
+
+    try {
+      const moved = await moveNote(note)
+      setSelectedId(null)
+      showToast(moved.archived ? 'Note archived' : 'Note restored', {
+        label: 'Undo',
+        run: () => void undoMove(moved),
+      })
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Something went wrong')
+    }
+  }
+
+  async function undoMove(note: Note) {
+    try {
+      const restored = await moveNote(note)
+      setView(restored.archived ? 'archived' : 'active')
+      setSelectedId(restored.id)
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Something went wrong')
+    }
   }
 
   async function deleteNote(id: string) {
@@ -127,6 +165,7 @@ export function Workspace() {
             fresh={selected.id === freshId}
             onSave={(input) => saveNote(selected.id, input)}
             onDelete={() => deleteNote(selected.id)}
+            onToggleArchive={() => void toggleArchive(selected)}
             onBack={() => setSelectedId(null)}
           />
         ) : (
@@ -138,6 +177,8 @@ export function Workspace() {
           </div>
         )}
       </main>
+
+      <Toast toast={toast} onDismiss={dismissToast} />
     </div>
   )
 }

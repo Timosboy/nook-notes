@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ArrowLeft, Trash } from '@phosphor-icons/react'
+import { Archive, ArrowLeft, ArrowUUpLeft, Trash } from '@phosphor-icons/react'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 import { formatDate } from '../lib/format'
 import { useAutosave, type SaveStatus } from '../lib/useAutosave'
@@ -18,15 +18,17 @@ type Props = {
   fresh: boolean
   onSave: (input: NoteInput) => Promise<void>
   onDelete: () => Promise<void>
+  onToggleArchive: () => void
   onBack: () => void
 }
 
-export function NoteEditor({ note, fresh, onSave, onDelete, onBack }: Props) {
+export function NoteEditor({ note, fresh, onSave, onDelete, onToggleArchive, onBack }: Props) {
   const [title, setTitle] = useState(note.title)
   const [content, setContent] = useState(note.content)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
 
   const hasTitle = title.trim().length > 0
+  const archiveLabel = note.archived ? 'Restore note' : 'Archive note'
   const status = useAutosave({ title: title.trim(), content }, onSave, { enabled: hasTitle })
 
   return (
@@ -38,10 +40,23 @@ export function NoteEditor({ note, fresh, onSave, onDelete, onBack }: Props) {
         <time className="document-date" dateTime={note.updatedAt}>
           {formatDate(note.updatedAt)}
         </time>
+        {note.archived && <span className="badge">Archived</span>}
         <div className="document-tools">
           <span className={`save-status is-${hasTitle ? status : 'error'}`} aria-live="polite">
             {hasTitle ? STATUS_LABEL[status] : 'Title required'}
           </span>
+          <button
+            className="icon-button"
+            aria-label={archiveLabel}
+            title={archiveLabel}
+            onClick={onToggleArchive}
+          >
+            {note.archived ? (
+              <ArrowUUpLeft size={16} weight="bold" />
+            ) : (
+              <Archive size={16} weight="bold" />
+            )}
+          </button>
           <button
             className="icon-button icon-button-danger"
             aria-label="Delete note"
