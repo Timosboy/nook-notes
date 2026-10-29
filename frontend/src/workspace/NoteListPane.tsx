@@ -1,4 +1,5 @@
 import type { ReactNode, Ref } from 'react'
+import { AnimatePresence } from 'motion/react'
 import type { Note } from '../notes/types'
 import { NoteRow } from './NoteRow'
 import { SearchField } from './SearchField'
@@ -13,6 +14,7 @@ type Props = {
   onSelect: (id: string) => void
   filter?: ReactNode
   children?: ReactNode
+  listKey?: string
 }
 
 export function NoteListPane({
@@ -25,6 +27,7 @@ export function NoteListPane({
   onSelect,
   filter,
   children,
+  listKey,
 }: Props) {
   return (
     <section className="list-pane" aria-label={title}>
@@ -39,16 +42,18 @@ export function NoteListPane({
       </div>
 
       {children ?? (
-        <ul className="note-rows">
-          {notes.map((note, index) => (
-            <NoteRow
-              key={note.id}
-              note={note}
-              order={index}
-              selected={note.id === selectedId}
-              onSelect={() => onSelect(note.id)}
-            />
-          ))}
+        <ul className="note-rows" key={listKey}>
+          <AnimatePresence mode="popLayout">
+            {notes.map((note, index) => (
+              <NoteRow
+                key={note.id}
+                note={note}
+                order={index}
+                selected={note.id === selectedId}
+                onSelect={() => onSelect(note.id)}
+              />
+            ))}
+          </AnimatePresence>
         </ul>
       )}
     </section>

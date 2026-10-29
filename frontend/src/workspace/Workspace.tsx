@@ -218,6 +218,7 @@ export function Workspace() {
 
       <NoteListPane
         title={copy.title}
+        listKey={`${view}:${categoryId ?? 'all'}`}
         notes={visibleNotes}
         selectedId={selectedId}
         query={query}

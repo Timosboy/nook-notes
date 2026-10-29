@@ -1,6 +1,7 @@
-import type { CSSProperties } from 'react'
+import { motion } from 'motion/react'
 import { CategoryChip } from '../categories/CategoryChip'
 import { timeAgo } from '../lib/format'
+import { ease, spring } from '../lib/motion'
 import type { Note } from '../notes/types'
 
 const MAX_CHIPS = 3
@@ -18,7 +19,17 @@ export function NoteRow({ note, order, selected, onSelect }: Props) {
   const hidden = note.categories.length - shown.length
 
   return (
-    <li className="note-row-item" style={{ '--order': Math.min(order, MAX_STAGGERED) } as CSSProperties}>
+    <motion.li
+      layout
+      initial={{ opacity: 0, y: 6 }}
+      animate={{
+        opacity: 1,
+        y: 0,
+        transition: { duration: 0.24, ease, delay: Math.min(order, MAX_STAGGERED) * 0.03 },
+      }}
+      exit={{ opacity: 0, x: -12, transition: { duration: 0.16, ease } }}
+      transition={{ layout: spring }}
+    >
       <button
         className={`note-row${selected ? ' is-selected' : ''}`}
         aria-current={selected || undefined}
@@ -40,6 +51,6 @@ export function NoteRow({ note, order, selected, onSelect }: Props) {
           )}
         </span>
       </button>
-    </li>
+    </motion.li>
   )
 }
