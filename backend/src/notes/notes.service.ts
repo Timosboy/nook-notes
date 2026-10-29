@@ -12,8 +12,8 @@ export class NotesService {
     private readonly categoriesService: CategoriesService,
   ) {}
 
-  findAll(archived = false): Promise<Note[]> {
-    return this.notesRepository.findAll(archived);
+  findAll(archived = false, categoryId?: string): Promise<Note[]> {
+    return this.notesRepository.findAll(archived, categoryId);
   }
 
   async findOne(id: string): Promise<Note> {

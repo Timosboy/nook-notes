@@ -1,5 +1,5 @@
 import { Transform } from 'class-transformer';
-import { IsBoolean, IsOptional } from 'class-validator';
+import { IsBoolean, IsOptional, IsUUID } from 'class-validator';
 
 export class ListNotesQuery {
   @IsOptional()
@@ -10,4 +10,8 @@ export class ListNotesQuery {
   })
   @IsBoolean()
   archived = false;
+
+  @IsOptional()
+  @IsUUID()
+  categoryId?: string;
 }

@@ -46,7 +46,7 @@ describe('NotesService', () => {
     notesRepository.findAll.mockResolvedValue(notes);
 
     await expect(service.findAll()).resolves.toBe(notes);
-    expect(notesRepository.findAll).toHaveBeenCalledWith(false);
+    expect(notesRepository.findAll).toHaveBeenCalledWith(false, undefined);
   });
 
   it('passes true when listing archived notes', async () => {
@@ -54,7 +54,16 @@ describe('NotesService', () => {
     notesRepository.findAll.mockResolvedValue(notes);
 
     await expect(service.findAll(true)).resolves.toBe(notes);
-    expect(notesRepository.findAll).toHaveBeenCalledWith(true);
+    expect(notesRepository.findAll).toHaveBeenCalledWith(true, undefined);
+  });
+
+  it('passes the category when listing notes', async () => {
+    const notes = [{ id: '1', title: 'Note', content: '' }];
+    const categoryId = '3fa85f64-5717-4562-b3fc-2c963f66afa6';
+    notesRepository.findAll.mockResolvedValue(notes);
+
+    await expect(service.findAll(false, categoryId)).resolves.toBe(notes);
+    expect(notesRepository.findAll).toHaveBeenCalledWith(false, categoryId);
   });
 
   it('returns the repository result from findOne', async () => {

@@ -24,7 +24,7 @@ export class NotesController {
 
   @Get()
   findAll(@Query() query: ListNotesQuery): Promise<Note[]> {
-    return this.notesService.findAll(query.archived);
+    return this.notesService.findAll(query.archived, query.categoryId);
   }
 
   @Get(':id')
