@@ -5,6 +5,7 @@ import { timeAgo } from '../lib/format'
 import { ease, spring } from '../lib/motion'
 import { notesApi } from '../notes/api'
 import type { Note } from '../notes/types'
+import { markdownToPlain } from '../lib/plainText'
 
 const MAX_CHIPS = 3
 const MAX_STAGGERED = 8
@@ -41,7 +42,7 @@ export function NoteRow({ note, order, selected, onSelect }: Props) {
           {note.emoji && <span className="note-row-emoji" aria-hidden="true">{note.emoji}</span>}
           <span className="note-row-title-text">{note.title}</span>
         </span>
-        <span className="note-row-preview">{note.content || 'No content'}</span>
+        <span className="note-row-preview">{markdownToPlain(note.content) || 'No content'}</span>
         <span className="note-row-meta">
           <time className="note-row-time" dateTime={note.updatedAt}>
             {timeAgo(note.updatedAt)}

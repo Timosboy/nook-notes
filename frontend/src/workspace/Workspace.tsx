@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { X } from '@phosphor-icons/react'
 import { categoriesApi } from '../categories/api'
 import { CategoryChip } from '../categories/CategoryChip'
@@ -12,16 +12,18 @@ import { useShortcut } from '../lib/useShortcut'
 import { usePanels } from '../lib/usePanels'
 import { useToast } from '../lib/useToast'
 import { checkImage } from '../lib/imageRules'
+import { markdownToPlain } from '../lib/plainText'
 import { notesApi } from '../notes/api'
 import { NotesEmpty, NotesError, NotesLoading } from '../notes/components/NoteStates'
 import type { Note, NoteImage, NoteInput } from '../notes/types'
 import { useNotes } from '../notes/useNotes'
 import { Home } from './Home'
-import { NoteEditor } from './NoteEditor'
-import { NoteListPane } from './NoteListPane'
 import { PanelToggles } from './PanelToggles'
 import { Sidebar, type View } from './Sidebar'
 import './workspace.css'
+
+const NoteEditor = lazy(() => import('./NoteEditor').then(({ NoteEditor: Component }) => ({ default: Component })))
+const NoteListPane = lazy(() => import('./NoteListPane').then(({ NoteListPane: Component }) => ({ default: Component })))
 
 const NEW_NOTE_TITLE = 'Untitled'
 
@@ -51,7 +53,7 @@ function countByCategory(notes: Note[]) {
 }
 
 const matches = (note: Note, query: string) =>
-  `${note.title}\n${note.content}`.toLowerCase().includes(query.trim().toLowerCase())
+  `${note.title}\n${markdownToPlain(note.content)}`.toLowerCase().includes(query.trim().toLowerCase())
 
 export function Workspace() {
   const active = useNotes(false)
@@ -324,54 +326,58 @@ export function Workspace() {
         />
       </Sidebar>
 
-      <NoteListPane
-        inert={desktop && !list}
-        title={copy.title}
-        listKey={`${view}:${categoryId ?? 'all'}`}
-        notes={visibleNotes}
-        selectedId={selectedId}
-        query={query}
-        searchRef={searchRef}
-        onQueryChange={setQuery}
-        onSelect={setSelectedId}
-        filter={
-          filter && (
-            <CategoryChip category={filter}>
-              <button
-                className="chip-remove"
-                aria-label="Clear category filter"
-                onClick={() => changeFilter(null)}
-              >
-                <X size={10} weight="bold" />
-              </button>
-            </CategoryChip>
-          )
-        }
-      >
-        {renderList()}
-      </NoteListPane>
+      <Suspense fallback={<section className="list-pane" aria-label={copy.title} />}>
+        <NoteListPane
+          inert={desktop && !list}
+          title={copy.title}
+          listKey={`${view}:${categoryId ?? 'all'}`}
+          notes={visibleNotes}
+          selectedId={selectedId}
+          query={query}
+          searchRef={searchRef}
+          onQueryChange={setQuery}
+          onSelect={setSelectedId}
+          filter={
+            filter && (
+              <CategoryChip category={filter}>
+                <button
+                  className="chip-remove"
+                  aria-label="Clear category filter"
+                  onClick={() => changeFilter(null)}
+                >
+                  <X size={10} weight="bold" />
+                </button>
+              </CategoryChip>
+            )
+          }
+        >
+          {renderList()}
+        </NoteListPane>
+      </Suspense>
 
       <main className="editor-pane">
         {actionError && <NotesError message={actionError} />}
         {selected ? (
-          <NoteEditor
-            key={selected.id}
-            leading={panelToggles}
-            note={selected}
-            section={copy.title}
-            fresh={selected.id === freshId}
-            onSave={(input) => saveNote(selected.id, input)}
-            onDelete={() => deleteNote(selected.id)}
-            onToggleArchive={() => void toggleArchive(selected)}
-            onTogglePin={() => void togglePin(selected)}
-            categories={categories.categories}
-            onToggleCategory={(category) => void toggleCategory(selected, category)}
-            onCreateCategory={(name) => createCategory(selected, name)}
-            onAddImages={(files) => addImages(selected, files)}
-            onRemoveImage={(image) => removeImage(selected, image)}
-            onChangeEmoji={(emoji) => void changeEmoji(selected, emoji)}
-            onBack={() => setSelectedId(null)}
-          />
+          <Suspense fallback={null}>
+            <NoteEditor
+              key={selected.id}
+              leading={panelToggles}
+              note={selected}
+              section={copy.title}
+              fresh={selected.id === freshId}
+              onSave={(input) => saveNote(selected.id, input)}
+              onDelete={() => deleteNote(selected.id)}
+              onToggleArchive={() => void toggleArchive(selected)}
+              onTogglePin={() => void togglePin(selected)}
+              categories={categories.categories}
+              onToggleCategory={(category) => void toggleCategory(selected, category)}
+              onCreateCategory={(name) => createCategory(selected, name)}
+              onAddImages={(files) => addImages(selected, files)}
+              onRemoveImage={(image) => removeImage(selected, image)}
+              onChangeEmoji={(emoji) => void changeEmoji(selected, emoji)}
+              onBack={() => setSelectedId(null)}
+            />
+          </Suspense>
         ) : (
           <Home
             leading={panelToggles}

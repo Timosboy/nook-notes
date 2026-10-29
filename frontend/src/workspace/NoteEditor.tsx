@@ -1,11 +1,9 @@
-import { useRef, useState, type ClipboardEvent, type DragEvent, type KeyboardEvent, type ReactNode } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState, type DragEvent, type KeyboardEvent, type ReactNode } from 'react'
 import { NotePencil } from '@phosphor-icons/react'
+import type { Editor } from '@tiptap/react'
 import type { Category } from '../categories/types'
 import { toneStyle } from '../categories/tone'
 import { ConfirmDialog } from '../components/ConfirmDialog'
-import { applyEdit, type Edit } from '../lib/applyEdit'
-import { wrapSelection } from '../lib/formatting'
-import { continueList, shiftIndent, toggleLinePrefix } from '../lib/listEditing'
 import { useAutosave } from '../lib/useAutosave'
 import type { Note, NoteImage, NoteInput } from '../notes/types'
 import { EditorTopbar } from './EditorTopbar'
@@ -15,44 +13,9 @@ import { IMAGE_TYPES } from '../lib/imageRules'
 import { FormatBar } from './FormatBar'
 import { EmojiPicker } from '../emoji/EmojiPicker'
 
+const RichEditor = lazy(() => import('./RichEditor').then(({ RichEditor: Component }) => ({ default: Component })))
+
 const TITLE_MAX_LENGTH = 120
-
-const WRAP_MARKERS: Record<string, string> = { b: '**', i: '_' }
-
-function editFor(event: KeyboardEvent<HTMLTextAreaElement>): Edit | null {
-  const { value, selectionStart, selectionEnd } = event.currentTarget
-
-  if (event.key === 'Enter' && !event.shiftKey) {
-    return continueList(value, selectionStart, selectionEnd)
-  }
-  if (event.key === 'Tab') {
-    return shiftIndent(value, selectionStart, selectionEnd, event.shiftKey)
-  }
-  return null
-}
-
-function handleBodyKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
-  const { nativeEvent, metaKey, ctrlKey, altKey, shiftKey, key } = event
-  if (nativeEvent.isComposing) return
-
-  if ((metaKey || ctrlKey) && !altKey && !shiftKey) {
-    const marker = WRAP_MARKERS[key.toLowerCase()]
-    if (!marker) return
-
-    const { value, selectionStart, selectionEnd } = event.currentTarget
-    event.preventDefault()
-    applyEdit(event.currentTarget, wrapSelection(value, selectionStart, selectionEnd, marker))
-    return
-  }
-
-  if (metaKey || ctrlKey || altKey) return
-
-  const edit = editFor(event)
-  if (!edit) return
-
-  event.preventDefault()
-  applyEdit(event.currentTarget, edit)
-}
 
 type Props = {
   leading?: ReactNode
@@ -95,12 +58,36 @@ export function NoteEditor({
   const [draggingFiles, setDraggingFiles] = useState(false)
   const [bodyFocused, setBodyFocused] = useState(false)
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false)
-  const body = useRef<HTMLTextAreaElement>(null)
+  const editor = useRef<Editor | null>(null)
+  const [editorState, setEditorState] = useState<Editor | null>(null)
+  const saveRef = useRef(onSave)
+  const savedRef = useRef({ title: note.title, content: note.content })
+  const titleRef = useRef(title)
+  const contentRef = useRef(content)
   const imagePicker = useRef<HTMLInputElement>(null)
 
   const hasTitle = title.trim().length > 0
-  const status = useAutosave({ title: title.trim(), content }, onSave, { enabled: hasTitle })
   const accent = note.categories[0]?.color
+
+  useEffect(() => {
+    saveRef.current = onSave
+  }, [onSave])
+
+  const saveSnapshot = useCallback(async (input: NoteInput) => {
+    await saveRef.current(input)
+    savedRef.current = input
+  }, [])
+
+  const status = useAutosave({ title: title.trim(), content }, saveSnapshot, { enabled: hasTitle })
+
+  const changeContent = useCallback((markdown: string) => {
+    contentRef.current = markdown
+    setContent(markdown)
+  }, [])
+  const toggleNoteCategory = useCallback((category: Category) => onToggleCategory(category), [onToggleCategory])
+  const createNoteCategory = useCallback((name: string) => onCreateCategory(name), [onCreateCategory])
+  const addNoteImages = useCallback((files: File[]) => onAddImages(files), [onAddImages])
+  const removeNoteImage = useCallback((image: NoteImage) => onRemoveImage(image), [onRemoveImage])
 
   function imageFiles(files: FileList | null) {
     return Array.from(files ?? []).filter((file) => IMAGE_TYPES.includes(file.type))
@@ -113,38 +100,25 @@ export function NoteEditor({
     if (files.length) void onAddImages(files)
   }
 
-  function handlePaste(event: ClipboardEvent<HTMLTextAreaElement>) {
-    const files = imageFiles(event.clipboardData.files)
-    if (!files.length) return
-    event.preventDefault()
-    void onAddImages(files)
-  }
-
-  function applyBodyFormat(edit: Edit) {
-    const textarea = body.current
-    if (!textarea) return
-    applyEdit(textarea, edit)
-    textarea.focus()
-  }
-
-  function handleList(kind: 'bullet' | 'number' | 'check') {
-    const textarea = body.current
-    if (!textarea) return
-    const { value, selectionStart, selectionEnd } = textarea
-    applyBodyFormat(toggleLinePrefix(value, selectionStart, selectionEnd, kind))
-  }
-
-  function handleWrap(marker: string) {
-    const textarea = body.current
-    if (!textarea) return
-    const { value, selectionStart, selectionEnd } = textarea
-    applyBodyFormat(wrapSelection(value, selectionStart, selectionEnd, marker))
-  }
-
   function handleImagePick(files: FileList | null) {
     const picked = Array.from(files ?? [])
     if (picked.length) void onAddImages(picked)
   }
+
+  const setEditor = useCallback((current: Editor | null) => {
+    editor.current = current
+    setEditorState(current)
+  }, [])
+  const focusEditor = useCallback(() => setBodyFocused(true), [])
+  const blurEditor = useCallback(() => setBodyFocused(false), [])
+
+  useEffect(() => () => {
+    const nextTitle = titleRef.current.trim()
+    const nextContent = contentRef.current
+    if (nextTitle && (nextTitle !== savedRef.current.title || nextContent !== savedRef.current.content)) {
+      void saveSnapshot({ title: nextTitle, content: nextContent }).catch(() => undefined)
+    }
+  }, [saveSnapshot])
 
   return (
     <>
@@ -200,7 +174,17 @@ export function NoteEditor({
           rows={1}
           maxLength={TITLE_MAX_LENGTH}
           value={title}
-          onChange={(event) => setTitle(event.target.value.replace(/\n/g, ''))}
+          onChange={(event) => {
+            const value = event.target.value.replace(/\n/g, '')
+            titleRef.current = value
+            setTitle(value)
+          }}
+          onKeyDown={(event: KeyboardEvent<HTMLTextAreaElement>) => {
+            if (event.key === 'Enter') {
+              event.preventDefault()
+              editor.current?.chain().focus('start').run()
+            }
+          }}
           onFocus={(event) => fresh && event.target.select()}
           autoFocus={fresh}
         />
@@ -208,31 +192,27 @@ export function NoteEditor({
         <NoteProperties
           note={note}
           categories={categories}
-          onToggleCategory={onToggleCategory}
-          onCreateCategory={onCreateCategory}
+          onToggleCategory={toggleNoteCategory}
+          onCreateCategory={createNoteCategory}
         />
 
-        <NoteImages note={note} onAddImages={onAddImages} onRemoveImage={onRemoveImage} />
+        <NoteImages note={note} onAddImages={addNoteImages} onRemoveImage={removeNoteImage} />
 
-        <textarea
-          ref={body}
-          className="document-body"
-          aria-label="Content"
-          placeholder="Start writing..."
-          value={content}
-          onChange={(event) => setContent(event.target.value)}
-          onKeyDown={handleBodyKeyDown}
-          onPaste={handlePaste}
-          onFocus={() => setBodyFocused(true)}
-          onBlur={() => setBodyFocused(false)}
-        />
+        <Suspense fallback={<div className="rich-editor" />}>
+          <RichEditor
+            initialContent={note.content}
+            onChange={changeContent}
+            onPasteImages={(files) => void onAddImages(files)}
+            onReady={setEditor}
+            onFocus={focusEditor}
+            onBlur={blurEditor}
+          />
+        </Suspense>
       </article>
 
       {bodyFocused && (
         <FormatBar
-          onBold={() => handleWrap('**')}
-          onItalic={() => handleWrap('_')}
-          onList={handleList}
+          editor={editorState}
           onImage={() => imagePicker.current?.click()}
         />
       )}

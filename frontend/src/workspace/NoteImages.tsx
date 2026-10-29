@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { memo, useRef, useState } from 'react'
 import { ImageSquare, X } from '@phosphor-icons/react'
 import { AnimatePresence, motion } from 'motion/react'
 import { ease } from '../lib/motion'
@@ -13,7 +13,7 @@ type Props = {
   onRemoveImage: (image: NoteImage) => Promise<void>
 }
 
-export function NoteImages({ note, onAddImages, onRemoveImage }: Props) {
+export const NoteImages = memo(function NoteImages({ note, onAddImages, onRemoveImage }: Props) {
   const input = useRef<HTMLInputElement>(null)
   const [uploadingCount, setUploadingCount] = useState(0)
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
@@ -107,4 +107,4 @@ export function NoteImages({ note, onAddImages, onRemoveImage }: Props) {
       />
     </section>
   )
-}
+})

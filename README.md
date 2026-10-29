@@ -75,7 +75,7 @@ Developed and tested on macOS (Apple silicon). `run.sh` only uses portable bash 
 | class-validator | 0.15.1 | Motion | 14.7.1 |
 | class-transformer | 0.5.1 | Phosphor Icons | 2.1.10 |
 | TypeScript | 5.9.3 | oxlint | 1.90.0 |
-| Jest | 30.5.2 | | |
+| Jest | 30.5.2 | TipTap | 3.32.1 |
 
 ## Features
 
@@ -97,7 +97,7 @@ Developed and tested on macOS (Apple silicon). `run.sh` only uses portable bash 
 - Emoji icon for each note, with a searchable picker.
 - Image attachments (JPEG, PNG, GIF, WebP, up to 5 MB each and 10 per note): upload, drag and drop, paste, and a full screen viewer.
 - Search, a live word count and reading time.
-- List editing in the note: Enter continues `1.`, `-`, `- [ ]` and `>` lists, Tab indents, Cmd/Ctrl+B and Cmd/Ctrl+I format text.
+- A rich text editor with Markdown shortcuts: `1. ` and `- ` start a list, `[ ] ` a checklist, `# ` a heading, `> ` a quote, and `**bold**` or `_italic_` format as you type. Cmd/Ctrl+B and Cmd/Ctrl+I work, Tab indents list items. Notes are stored as Markdown text.
 - Light, night and reading themes (the reading theme uses warm paper tones with no white).
 - Hide the sidebar and the note list.
 - Mobile layout with a formatting bar above the keyboard.
@@ -119,9 +119,10 @@ Developed and tested on macOS (Apple silicon). `run.sh` only uses portable bash 
 | `[` | Hide or show the sidebar |
 | `]` | Hide or show the note list |
 | `\` | Hide or show both |
-| `Enter` in a list | Continue the list (twice to leave it) |
+| `Enter` on an empty list item | Leave the list |
 | `Tab` / `Shift+Tab` | Indent or outdent list items |
 | `Cmd/Ctrl+B`, `Cmd/Ctrl+I` | Bold and italic |
+| `Cmd/Ctrl+Z`, `Cmd/Ctrl+Shift+Z` | Undo and redo |
 
 Single key shortcuts are ignored while you type in a field.
 
@@ -156,7 +157,7 @@ frontend/src
 ├── categories/    chips, picker, sidebar list, form
 ├── emoji/         emoji data and picker
 ├── components/    dialog and toast
-└── lib/           http client, autosave, themes, panels, text editing helpers
+└── lib/           http client, autosave, themes, panels, markdown helpers
 ```
 
 ### Decisions worth knowing
@@ -167,6 +168,7 @@ frontend/src
 - **Pinning is not an edit.** Pinning a note keeps its `updatedAt`, and archiving a pinned note unpins it.
 - **Category filter.** The API supports `GET /api/notes?categoryId=...`, which keeps all the categories of each note. The UI filters the notes it already has in memory, so it is instant and it works with Undo. Switching the UI to the server filter is a small change.
 - **Category colors** are stored as `#rrggbb`. The chips derive their background and text from that color and the current theme, so any color works in every theme.
+- **Notes are Markdown.** The `content` column holds plain Markdown text and the editor (TipTap) shows it formatted, so notes stay readable and portable, and old plain text notes are valid Markdown. Markdown has no underline, so there is none.
 - **Autosave** waits 600 ms after you stop typing, and flushes a pending save when you leave the note.
 
 ## API

@@ -285,8 +285,7 @@
   color: var(--red-text);
 }
 
-.document-title,
-.document-body {
+.document-title {
   display: block;
   width: 100%;
   padding: 0;
@@ -307,15 +306,7 @@
   color: var(--text-strong);
 }
 
-.document-body {
-  min-height: 50vh;
-  margin-top: 20px;
-  font-size: 16px;
-  line-height: 1.75;
-}
-
-.document-title::placeholder,
-.document-body::placeholder {
+.document-title::placeholder {
   color: var(--text-muted);
   opacity: 0.6;
 }

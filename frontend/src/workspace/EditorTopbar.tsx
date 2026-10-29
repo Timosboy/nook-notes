@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { Archive, ArrowLeft, ArrowUUpLeft, CaretRight, PushPin, Trash } from '@phosphor-icons/react'
 import { timeAgo } from '../lib/format'
 import { countWords, readingMinutes } from '../lib/stats'
+import { markdownToPlain } from '../lib/plainText'
 import type { SaveStatus } from '../lib/useAutosave'
 import type { Note } from '../notes/types'
 
@@ -37,7 +38,7 @@ export function EditorTopbar({
   onDelete,
 }: Props) {
   const archiveLabel = note.archived ? 'Restore note' : 'Archive note'
-  const words = countWords(content)
+  const words = countWords(markdownToPlain(content))
 
   return (
     <header className="editor-topbar">
