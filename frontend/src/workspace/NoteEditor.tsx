@@ -1,16 +1,17 @@
-import { useState, type ClipboardEvent, type DragEvent, type KeyboardEvent } from 'react'
+import { useRef, useState, type ClipboardEvent, type DragEvent, type KeyboardEvent } from 'react'
 import { NotePencil } from '@phosphor-icons/react'
 import type { Category } from '../categories/types'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 import { applyEdit, type Edit } from '../lib/applyEdit'
 import { wrapSelection } from '../lib/formatting'
-import { continueList, shiftIndent } from '../lib/listEditing'
+import { continueList, shiftIndent, toggleLinePrefix } from '../lib/listEditing'
 import { useAutosave } from '../lib/useAutosave'
 import type { Note, NoteImage, NoteInput } from '../notes/types'
 import { EditorTopbar } from './EditorTopbar'
 import { NoteProperties } from './NoteProperties'
 import { NoteImages } from './NoteImages'
 import { IMAGE_TYPES } from '../lib/imageRules'
+import { FormatBar } from './FormatBar'
 
 const TITLE_MAX_LENGTH = 120
 
@@ -86,6 +87,9 @@ export function NoteEditor({
   const [content, setContent] = useState(note.content)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [draggingFiles, setDraggingFiles] = useState(false)
+  const [bodyFocused, setBodyFocused] = useState(false)
+  const body = useRef<HTMLTextAreaElement>(null)
+  const imagePicker = useRef<HTMLInputElement>(null)
 
   const hasTitle = title.trim().length > 0
   const status = useAutosave({ title: title.trim(), content }, onSave, { enabled: hasTitle })
@@ -109,6 +113,32 @@ export function NoteEditor({
     void onAddImages(files)
   }
 
+  function applyBodyFormat(edit: Edit) {
+    const textarea = body.current
+    if (!textarea) return
+    applyEdit(textarea, edit)
+    textarea.focus()
+  }
+
+  function handleList(kind: 'bullet' | 'number' | 'check') {
+    const textarea = body.current
+    if (!textarea) return
+    const { value, selectionStart, selectionEnd } = textarea
+    applyBodyFormat(toggleLinePrefix(value, selectionStart, selectionEnd, kind))
+  }
+
+  function handleWrap(marker: string) {
+    const textarea = body.current
+    if (!textarea) return
+    const { value, selectionStart, selectionEnd } = textarea
+    applyBodyFormat(wrapSelection(value, selectionStart, selectionEnd, marker))
+  }
+
+  function handleImagePick(files: FileList | null) {
+    const picked = Array.from(files ?? [])
+    if (picked.length) void onAddImages(picked)
+  }
+
   return (
     <>
       <EditorTopbar
@@ -124,7 +154,7 @@ export function NoteEditor({
       />
 
       <article
-        className={`document${draggingFiles ? ' is-dragging-files' : ''}`}
+        className={`document${draggingFiles ? ' is-dragging-files' : ''}${bodyFocused ? ' has-format-bar' : ''}`}
         onDragEnter={(event) => {
           if (event.dataTransfer.types.includes('Files')) setDraggingFiles(true)
         }}
@@ -162,6 +192,7 @@ export function NoteEditor({
         <NoteImages note={note} onAddImages={onAddImages} onRemoveImage={onRemoveImage} />
 
         <textarea
+          ref={body}
           className="document-body"
           aria-label="Content"
           placeholder="Start writing..."
@@ -169,8 +200,31 @@ export function NoteEditor({
           onChange={(event) => setContent(event.target.value)}
           onKeyDown={handleBodyKeyDown}
           onPaste={handlePaste}
+          onFocus={() => setBodyFocused(true)}
+          onBlur={() => setBodyFocused(false)}
         />
       </article>
+
+      {bodyFocused && (
+        <FormatBar
+          onBold={() => handleWrap('**')}
+          onItalic={() => handleWrap('_')}
+          onList={handleList}
+          onImage={() => imagePicker.current?.click()}
+        />
+      )}
+
+      <input
+        ref={imagePicker}
+        hidden
+        type="file"
+        accept={IMAGE_TYPES.join(',')}
+        multiple
+        onChange={(event) => {
+          handleImagePick(event.currentTarget.files)
+          event.currentTarget.value = ''
+        }}
+      />
 
       <ConfirmDialog
         open={confirmingDelete}

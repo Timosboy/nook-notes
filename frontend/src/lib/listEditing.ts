@@ -62,6 +62,48 @@ export function continueList(value: string, start: number, end: number): Edit | 
   return { from: start, to: start, insert, caret: start + insert.length }
 }
 
+export function toggleLinePrefix(
+  value: string,
+  start: number,
+  end: number,
+  kind: 'bullet' | 'number' | 'check',
+): Edit {
+  const firstStart = getLineStart(value, start)
+  const lastPosition = start === end ? end : end - 1
+  const lastEnd = getLineEnd(value, lastPosition)
+  const lines = value.slice(firstStart, lastEnd).split('\n')
+  const prefixes = lines.map((line) => getListPrefix(line))
+  const isRequestedKind = (prefix: ListPrefix | null) => {
+    if (!prefix) return false
+    if (kind === 'check') return prefix.kind === 'checkbox'
+    return prefix.kind === kind
+  }
+  const nonEmpty = lines
+    .map((line, index) => ({ line, prefix: prefixes[index] }))
+    .filter(({ line, prefix }) => line.slice(prefix?.value.length ?? 0).trim().length > 0)
+  const remove = nonEmpty.length > 0 && nonEmpty.every(({ prefix }) => isRequestedKind(prefix))
+
+  let number = 0
+  const edited = lines.map((line, index) => {
+    const prefix = prefixes[index]
+    if (remove) return prefix ? line.slice(prefix.value.length) : line
+
+    const indent = prefix?.value.match(/^ */)?.[0] ?? line.match(/^ */)?.[0] ?? ''
+    const content = prefix ? line.slice(prefix.value.length) : line.slice(indent.length)
+
+    if (kind === 'number') {
+      number += 1
+      return `${indent}${number}. ${content}`
+    }
+
+    const nextPrefix = kind === 'check' ? '- [ ] ' : '- '
+    return `${indent}${nextPrefix}${content}`
+  })
+  const insert = edited.join('\n')
+
+  return { from: firstStart, to: lastEnd, insert, caret: firstStart + insert.length }
+}
+
 export function shiftIndent(
   value: string,
   start: number,

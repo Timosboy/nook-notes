@@ -1,0 +1,60 @@
+.format-bar {
+  position: fixed;
+  z-index: 20;
+  right: 0;
+  left: 0;
+  display: none;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+  overflow-x: auto;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  scrollbar-width: none;
+  animation: format-bar-in 180ms var(--ease-out);
+}
+
+.format-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.format-bar-button {
+  display: grid;
+  flex: 0 0 44px;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-strong);
+  cursor: pointer;
+}
+
+.format-bar-button:active {
+  background: var(--surface-muted);
+}
+
+.format-bar-image {
+  margin-right: 4px;
+  border-right: 1px solid var(--border);
+  border-radius: 0;
+}
+
+@keyframes format-bar-in {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 820px) {
+  .format-bar {
+    display: flex;
+  }
+}

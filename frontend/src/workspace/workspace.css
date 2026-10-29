@@ -469,6 +469,10 @@
     padding: 16px 16px 96px;
   }
 
+  .document.has-format-bar {
+    padding-bottom: 168px;
+  }
+
   .document-title {
     font-size: 32px;
   }
