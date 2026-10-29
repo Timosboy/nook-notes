@@ -12,7 +12,7 @@ export function OutlineRail({ editor }: Props) {
   const anchor = useRef<HTMLDivElement>(null)
   const [headings, setHeadings] = useState<Heading[]>([])
   const [active, setActive] = useState<number | null>(null)
-  const [bounds, setBounds] = useState<{ top: number, right: number, height: number } | null>(null)
+  const [bounds, setBounds] = useState<{ top: number, left: number, height: number } | null>(null)
   const [hovered, setHovered] = useState(false)
   const [focused, setFocused] = useState(false)
   const reduced = useReducedMotion()
@@ -60,10 +60,10 @@ export function OutlineRail({ editor }: Props) {
       const top = Math.max(0, rect.top)
       const bottom = Math.min(window.innerHeight, rect.bottom)
       const height = Math.max(0, bottom - top)
-      const right = window.innerWidth - Math.min(page.right, rect.left + pane!.clientWidth)
+      const left = Math.max(rect.left, page.left)
       setBounds((previous) => {
-        const next = { top: top + height / 2, right, height }
-        return previous?.top === next.top && previous.right === right && previous.height === height ? previous : next
+        const next = { top: top + height / 2, left, height }
+        return previous?.top === next.top && previous.left === left && previous.height === height ? previous : next
       })
       let position = headings[0].pos
       for (const heading of headings) {
@@ -109,7 +109,7 @@ export function OutlineRail({ editor }: Props) {
         <nav
           className="outline-rail"
           aria-label="Outline"
-          style={{ top: bounds.top, right: bounds.right + 10, maxHeight: Math.max(0, bounds.height - 144) }}
+          style={{ top: bounds.top, left: bounds.left + 8, maxHeight: Math.max(0, bounds.height - 144) }}
           onPointerEnter={() => setHovered(true)}
           onPointerLeave={() => setHovered(false)}
           onFocus={() => setFocused(true)}
@@ -136,9 +136,9 @@ export function OutlineRail({ editor }: Props) {
             {(hovered || focused) && (
               <motion.div
                 className="outline-card-wrap"
-                initial={{ opacity: 0, x: reduced ? 0 : 6 }}
+                initial={{ opacity: 0, x: reduced ? 0 : -6 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: reduced ? 0 : 6 }}
+                exit={{ opacity: 0, x: reduced ? 0 : -6 }}
                 transition={{ duration: reduced ? 0 : 0.14, ease }}
               >
                 <ul className="outline-card">
