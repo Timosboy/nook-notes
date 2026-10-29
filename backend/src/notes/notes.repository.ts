@@ -1,0 +1,26 @@
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Note } from './note.entity';
+
+export type NewNote = Pick<Note, 'title' | 'content'>;
+
+@Injectable()
+export class NotesRepository {
+  constructor(
+    @InjectRepository(Note)
+    private readonly notes: Repository<Note>,
+  ) {}
+
+  findAll(): Promise<Note[]> {
+    return this.notes.find({ order: { updatedAt: 'DESC' } });
+  }
+
+  findById(id: string): Promise<Note | null> {
+    return this.notes.findOneBy({ id });
+  }
+
+  create(note: NewNote): Promise<Note> {
+    return this.notes.save(this.notes.create(note));
+  }
+}
