@@ -5,6 +5,7 @@ export type Note = {
   title: string
   content: string
   archived: boolean
+  pinned: boolean
   categories: Category[]
   images: NoteImage[]
   createdAt: string

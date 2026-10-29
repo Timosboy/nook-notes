@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { CategoriesService } from '../categories/categories.service';
 import { NotesRepository } from './notes.repository';
 import { NotesService } from './notes.service';
@@ -18,6 +18,7 @@ describe('NotesService', () => {
     findById: jest.Mock;
     create: jest.Mock;
     save: jest.Mock;
+    setPinned: jest.Mock;
     remove: jest.Mock;
   };
   let categoriesService: {
@@ -30,6 +31,7 @@ describe('NotesService', () => {
       findById: jest.fn(),
       create: jest.fn(),
       save: jest.fn(),
+      setPinned: jest.fn(),
       remove: jest.fn(),
     };
     categoriesService = {
@@ -144,12 +146,14 @@ describe('NotesService', () => {
       title: 'Note',
       content: '',
       archived: false,
+      pinned: true,
     };
     notesRepository.findById.mockResolvedValue(note);
     notesRepository.save.mockResolvedValue(note);
 
     await expect(service.archive(note.id)).resolves.toBe(note);
     expect(note.archived).toBe(true);
+    expect(note.pinned).toBe(false);
     expect(notesRepository.save).toHaveBeenCalledWith(note);
   });
 
@@ -175,6 +179,62 @@ describe('NotesService', () => {
       service.archive('3fa85f64-5717-4562-b3fc-2c963f66afa6'),
     ).rejects.toThrow(NotFoundException);
     expect(notesRepository.save).not.toHaveBeenCalled();
+  });
+
+  it('pins an active note', async () => {
+    const note = {
+      id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+      title: 'Note',
+      content: '',
+      archived: false,
+      pinned: true,
+    };
+    notesRepository.findById.mockResolvedValueOnce({ ...note, pinned: false });
+    notesRepository.setPinned.mockResolvedValue(note);
+
+    await expect(service.pin(note.id)).resolves.toBe(note);
+    expect(notesRepository.setPinned).toHaveBeenCalledWith(note.id, true);
+  });
+
+  it('unpins a note', async () => {
+    const note = {
+      id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+      title: 'Note',
+      content: '',
+      archived: false,
+      pinned: false,
+    };
+    notesRepository.findById.mockResolvedValue(note);
+    notesRepository.setPinned.mockResolvedValue(note);
+
+    await expect(service.unpin(note.id)).resolves.toBe(note);
+    expect(notesRepository.setPinned).toHaveBeenCalledWith(note.id, false);
+  });
+
+  it('rejects pinning an archived note', async () => {
+    const note = {
+      id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+      title: 'Note',
+      content: '',
+      archived: true,
+      pinned: false,
+    };
+    notesRepository.findById.mockResolvedValue(note);
+
+    await expect(service.pin(note.id)).rejects.toThrow(BadRequestException);
+    await expect(service.pin(note.id)).rejects.toThrow(
+      'Archived notes cannot be pinned',
+    );
+    expect(notesRepository.setPinned).not.toHaveBeenCalled();
+  });
+
+  it('throws NotFoundException when pinning a missing note', async () => {
+    notesRepository.findById.mockResolvedValue(null);
+
+    await expect(
+      service.pin('3fa85f64-5717-4562-b3fc-2c963f66afa6'),
+    ).rejects.toThrow('Note not found');
+    expect(notesRepository.setPinned).not.toHaveBeenCalled();
   });
 
   it('adds a category to a note', async () => {

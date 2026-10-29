@@ -29,6 +29,9 @@ export class Note {
   @Column({ default: false })
   archived: boolean;
 
+  @Column({ default: false })
+  pinned: boolean;
+
   @ManyToMany(() => Category, { onDelete: 'CASCADE' })
   @JoinTable({
     name: 'note_categories',

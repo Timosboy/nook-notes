@@ -1,4 +1,4 @@
-import { Archive, ArrowLeft, ArrowUUpLeft, CaretRight, Trash } from '@phosphor-icons/react'
+import { Archive, ArrowLeft, ArrowUUpLeft, CaretRight, PushPin, Trash } from '@phosphor-icons/react'
 import { timeAgo } from '../lib/format'
 import { countWords, readingMinutes } from '../lib/stats'
 import type { SaveStatus } from '../lib/useAutosave'
@@ -17,6 +17,7 @@ type Props = {
   section: string
   status: SaveStatus | 'invalid'
   onBack: () => void
+  onTogglePin: () => void
   onToggleArchive: () => void
   onDelete: () => void
 }
@@ -28,6 +29,7 @@ export function EditorTopbar({
   section,
   status,
   onBack,
+  onTogglePin,
   onToggleArchive,
   onDelete,
 }: Props) {
@@ -57,6 +59,16 @@ export function EditorTopbar({
         <time className="topbar-edited" dateTime={note.updatedAt}>
           Edited {timeAgo(note.updatedAt).toLowerCase()}
         </time>
+        {!note.archived && (
+          <button
+            className="icon-button"
+            aria-label={note.pinned ? 'Unpin note' : 'Pin note'}
+            title={note.pinned ? 'Unpin note' : 'Pin note'}
+            onClick={onTogglePin}
+          >
+            <PushPin size={16} weight={note.pinned ? 'fill' : 'bold'} />
+          </button>
+        )}
         <button
           className="icon-button"
           aria-label={archiveLabel}
