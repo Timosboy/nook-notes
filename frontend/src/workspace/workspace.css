@@ -333,3 +333,46 @@
   align-items: center;
   gap: 8px;
 }
+
+.list-search {
+  padding: 0 16px 12px;
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--canvas);
+  color: var(--text-muted);
+  transition: border-color 150ms;
+}
+
+.search:focus-within {
+  border-color: var(--border-strong);
+}
+
+.search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  font-size: 14px;
+  outline: none;
+}
+
+.search input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.editor-placeholder {
+  align-content: center;
+  gap: 10px;
+}
+
+.shortcuts {
+  font-size: 13px;
+}

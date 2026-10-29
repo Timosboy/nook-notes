@@ -1,14 +1,18 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import { useShortcut } from '../lib/useShortcut'
 import { notesApi } from '../notes/api'
-import type { NoteInput } from '../notes/types'
 import { NotesEmpty, NotesError, NotesLoading } from '../notes/components/NoteStates'
+import type { Note, NoteInput } from '../notes/types'
 import { useNotes } from '../notes/useNotes'
-import { NoteListPane } from './NoteListPane'
 import { NoteEditor } from './NoteEditor'
+import { NoteListPane } from './NoteListPane'
 import { Sidebar } from './Sidebar'
 import './workspace.css'
 
 const NEW_NOTE_TITLE = 'Untitled'
+
+const matches = (note: Note, query: string) =>
+  `${note.title}\n${note.content}`.toLowerCase().includes(query.trim().toLowerCase())
 
 export function Workspace() {
   const { notes, loading, error, reload, upsert, drop } = useNotes(false)
@@ -16,16 +20,22 @@ export function Workspace() {
   const [creating, setCreating] = useState(false)
   const [freshId, setFreshId] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
+  const [query, setQuery] = useState('')
+  const searchRef = useRef<HTMLInputElement>(null)
 
+  const visibleNotes = query.trim() ? notes.filter((note) => matches(note, query)) : notes
   const selected = notes.find((note) => note.id === selectedId) ?? null
 
   async function createNote() {
+    if (creating) return
+
     setCreating(true)
     setActionError(null)
 
     try {
       const note = await notesApi.create({ title: NEW_NOTE_TITLE, content: '' })
       upsert(note)
+      setQuery('')
       setSelectedId(note.id)
       setFreshId(note.id)
     } catch (err) {
@@ -45,11 +55,19 @@ export function Workspace() {
     setSelectedId(null)
   }
 
+  useShortcut('n', () => void createNote())
+  useShortcut('/', () => searchRef.current?.focus())
+
   function renderList() {
     if (error) return <NotesError message={error} onRetry={reload} />
     if (loading) return <NotesLoading />
+
     if (notes.length === 0) {
       return <NotesEmpty title="No notes yet" description="Your notes will show up here." />
+    }
+
+    if (visibleNotes.length === 0) {
+      return <NotesEmpty title="No matches" description={`Nothing found for "${query.trim()}".`} />
     }
   }
 
@@ -59,8 +77,11 @@ export function Workspace() {
 
       <NoteListPane
         title="Notes"
-        notes={notes}
+        notes={visibleNotes}
         selectedId={selectedId}
+        query={query}
+        searchRef={searchRef}
+        onQueryChange={setQuery}
         onSelect={setSelectedId}
       >
         {renderList()}
@@ -79,6 +100,9 @@ export function Workspace() {
         ) : (
           <div className="editor-placeholder">
             <p>Pick a note to keep writing, or start a new one.</p>
+            <p className="shortcuts">
+              <kbd>N</kbd> new note <span aria-hidden="true">·</span> <kbd>/</kbd> search
+            </p>
           </div>
         )}
       </main>
