@@ -16,4 +16,10 @@ export const notesApi = {
   archive: (id: string) => request<Note>(`/notes/${id}/archive`, { method: 'PATCH' }),
 
   unarchive: (id: string) => request<Note>(`/notes/${id}/unarchive`, { method: 'PATCH' }),
+
+  addCategory: (id: string, categoryId: string) =>
+    request<Note>(`/notes/${id}/categories/${categoryId}`, { method: 'PUT' }),
+
+  removeCategory: (id: string, categoryId: string) =>
+    request<Note>(`/notes/${id}/categories/${categoryId}`, { method: 'DELETE' }),
 }
