@@ -108,6 +108,7 @@ Developed and tested on macOS (Apple silicon). `run.sh` only uses portable bash 
 - Emoji icon for each note, with a searchable picker.
 - Images inside the text of a note (JPEG, PNG, GIF, WebP, up to 5 MB each and 30 per note): paste, drag and drop onto the text, or use the insert button, and click one to see it full screen.
 - Search, a live word count and reading time.
+- A slash menu: type `/` in a note to insert a heading, list, checklist, quote, code block, divider or image, filtering as you type.
 - A rich text editor with Markdown shortcuts: `1. ` and `- ` start a list, `[ ] ` a checklist, `# ` a heading, `> ` a quote, and `**bold**` or `_italic_` format as you type. Cmd/Ctrl+B and Cmd/Ctrl+I work, Tab indents list items. Notes are stored as Markdown text.
 - Light, night and reading themes (the reading theme uses warm paper tones with no white).
 - Hide the sidebar and the note list.
@@ -126,7 +127,8 @@ Developed and tested on macOS (Apple silicon). `run.sh` only uses portable bash 
 | Key | Action |
 |---|---|
 | `N` | New note |
-| `/` | Search notes |
+| `/` | Search notes (outside the text of a note) |
+| `/` inside a note | Open the block menu |
 | `[` | Hide or show the sidebar |
 | `]` | Hide or show the note list |
 | `\` | Hide or show both |
