@@ -6,6 +6,7 @@ import {
 import { Category } from './category.entity';
 import { CategoriesRepository } from './categories.repository';
 import { CreateCategoryDto } from './dto/create-category.dto';
+import { UpdateCategoryDto } from './dto/update-category.dto';
 
 @Injectable()
 export class CategoriesService {
@@ -35,6 +36,23 @@ export class CategoriesService {
     return this.categoriesRepository.create({
       name: dto.name,
       color: dto.color,
+    });
+  }
+
+  async update(id: string, dto: UpdateCategoryDto): Promise<Category> {
+    const category = await this.findOne(id);
+
+    if (dto.name !== undefined) {
+      const existing = await this.categoriesRepository.findByName(dto.name);
+
+      if (existing && existing.id !== category.id) {
+        throw new ConflictException('A category with this name already exists');
+      }
+    }
+
+    return this.categoriesRepository.update(category, {
+      ...(dto.name !== undefined && { name: dto.name }),
+      ...(dto.color !== undefined && { color: dto.color }),
     });
   }
 

@@ -6,12 +6,14 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Patch,
   ParseUUIDPipe,
   Post,
 } from '@nestjs/common';
 import { Category } from './category.entity';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
+import { UpdateCategoryDto } from './dto/update-category.dto';
 
 @Controller('categories')
 export class CategoriesController {
@@ -25,6 +27,14 @@ export class CategoriesController {
   @Post()
   create(@Body() dto: CreateCategoryDto): Promise<Category> {
     return this.categoriesService.create(dto);
+  }
+
+  @Patch(':id')
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateCategoryDto,
+  ): Promise<Category> {
+    return this.categoriesService.update(id, dto);
   }
 
   @Delete(':id')
