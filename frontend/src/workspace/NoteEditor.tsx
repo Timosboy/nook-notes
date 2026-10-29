@@ -13,6 +13,7 @@ import type { Note, NoteImage, NoteInput } from '../notes/types'
 import { EditorTopbar } from './EditorTopbar'
 import { NoteProperties } from './NoteProperties'
 import { FormatBar } from './FormatBar'
+import { OutlineRail } from './OutlineRail'
 import { EmojiPicker } from '../emoji/EmojiPicker'
 import { ImageLightbox } from './ImageLightbox'
 import type { EditorImage } from './RichEditor'
@@ -268,6 +269,8 @@ export function NoteEditor({
         </Suspense>
         {words > 0 && <p className="document-word-count">{words} {words === 1 ? 'word' : 'words'} · {readingMinutes(words)} min read</p>}
       </article>
+
+      <OutlineRail editor={editorState} />
 
       {bodyFocused && <FormatBar editor={editorState} onImage={openImagePicker} />}
 
