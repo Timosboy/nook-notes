@@ -161,12 +161,89 @@ kbd {
   color: var(--text-muted);
 }
 
+.note-confirm {
+  flex: 1;
+  white-space: nowrap;
+}
+
 .note-confirm span {
-  margin-right: 4px;
+  margin-right: auto;
+}
+
+.note-list .hint {
+  display: none;
 }
 
 .note-confirm .button {
   height: 28px;
   padding: 0 10px;
   font-size: 13px;
+}
+
+.note-skeleton {
+  height: 160px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-muted);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 64px 24px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+  text-align: center;
+}
+
+.state-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 4px;
+  border-radius: var(--radius);
+  background: var(--yellow-bg);
+  color: var(--yellow-text);
+}
+
+.state-title {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 26px;
+  line-height: 1.2;
+  color: var(--text-strong);
+}
+
+.state-text {
+  max-width: 340px;
+  margin-bottom: 12px;
+  color: var(--text-muted);
+}
+
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 24px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--red-bg);
+  color: var(--red-text);
+  font-size: 14px;
+}
+
+.banner .button {
+  margin-left: auto;
+  height: 30px;
+  color: inherit;
 }

@@ -36,9 +36,6 @@ export function NoteCard({ note, onUpdate, onDelete }: Props) {
       <h2 className="note-title">{note.title}</h2>
       {note.content && <p className="note-content">{note.content}</p>}
       <footer className="note-footer">
-        <time className="note-date" dateTime={note.updatedAt}>
-          {formatDate(note.updatedAt)}
-        </time>
         {mode === 'confirm-delete' ? (
           <div className="note-confirm">
             <span>Delete this note?</span>
@@ -50,18 +47,27 @@ export function NoteCard({ note, onUpdate, onDelete }: Props) {
             </button>
           </div>
         ) : (
-          <div className="note-actions">
-            <button className="icon-button" aria-label="Edit note" onClick={() => setMode('edit')}>
-              <PencilSimple size={16} weight="bold" />
-            </button>
-            <button
-              className="icon-button icon-button-danger"
-              aria-label="Delete note"
-              onClick={() => setMode('confirm-delete')}
-            >
-              <Trash size={16} weight="bold" />
-            </button>
-          </div>
+          <>
+            <time className="note-date" dateTime={note.updatedAt}>
+              {formatDate(note.updatedAt)}
+            </time>
+            <div className="note-actions">
+              <button
+                className="icon-button"
+                aria-label="Edit note"
+                onClick={() => setMode('edit')}
+              >
+                <PencilSimple size={16} weight="bold" />
+              </button>
+              <button
+                className="icon-button icon-button-danger"
+                aria-label="Delete note"
+                onClick={() => setMode('confirm-delete')}
+              >
+                <Trash size={16} weight="bold" />
+              </button>
+            </div>
+          </>
         )}
       </footer>
     </article>
