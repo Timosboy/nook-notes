@@ -1,7 +1,10 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Patch,
   ParseUUIDPipe,
@@ -37,5 +40,11 @@ export class NotesController {
     @Body() dto: UpdateNoteDto,
   ): Promise<Note> {
     return this.notesService.update(id, dto);
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
+    return this.notesService.remove(id);
   }
 }

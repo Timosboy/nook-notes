@@ -13,6 +13,7 @@ describe('NotesService', () => {
     findById: jest.Mock;
     create: jest.Mock;
     save: jest.Mock;
+    remove: jest.Mock;
   };
 
   beforeEach(() => {
@@ -21,6 +22,7 @@ describe('NotesService', () => {
       findById: jest.fn(),
       create: jest.fn(),
       save: jest.fn(),
+      remove: jest.fn(),
     };
     service = new NotesService(notesRepository as unknown as NotesRepository);
   });
@@ -102,5 +104,26 @@ describe('NotesService', () => {
       }),
     ).rejects.toThrow(NotFoundException);
     expect(notesRepository.save).not.toHaveBeenCalled();
+  });
+
+  it('removes an existing note', async () => {
+    const note = {
+      id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+      title: 'Note',
+      content: '',
+    };
+    notesRepository.findById.mockResolvedValue(note);
+
+    await expect(service.remove(note.id)).resolves.toBeUndefined();
+    expect(notesRepository.remove).toHaveBeenCalledWith(note);
+  });
+
+  it('throws NotFoundException when removing a missing note', async () => {
+    notesRepository.findById.mockResolvedValue(null);
+
+    await expect(
+      service.remove('3fa85f64-5717-4562-b3fc-2c963f66afa6'),
+    ).rejects.toThrow(NotFoundException);
+    expect(notesRepository.remove).not.toHaveBeenCalled();
   });
 });

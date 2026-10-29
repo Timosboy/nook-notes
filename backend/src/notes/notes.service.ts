@@ -35,4 +35,10 @@ export class NotesService {
 
     return this.notesRepository.save(note);
   }
+
+  async remove(id: string): Promise<void> {
+    const note = await this.findOne(id);
+
+    await this.notesRepository.remove(note);
+  }
 }

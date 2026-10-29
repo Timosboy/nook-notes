@@ -27,4 +27,8 @@ export class NotesRepository {
   save(note: Note): Promise<Note> {
     return this.notes.save(note);
   }
+
+  async remove(note: Note): Promise<void> {
+    await this.notes.remove(note);
+  }
 }
