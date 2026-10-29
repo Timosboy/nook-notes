@@ -107,11 +107,6 @@
   color-scheme: light;
 }
 
-:root[data-theme='reading'] .document-body {
-  font-size: 18px;
-  line-height: 1.85;
-}
-
 :root[data-theme='light'] ::selection {
   background: color-mix(in srgb, var(--focus) 24%, var(--surface));
 }
@@ -121,7 +116,7 @@
 }
 
 :root[data-theme='reading'] ::selection {
-  background: #e3cf9f;
+  background: color-mix(in srgb, var(--focus) 32%, var(--surface));
 }
 
 *,

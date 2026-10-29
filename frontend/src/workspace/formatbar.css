@@ -37,6 +37,10 @@
   background: var(--surface-muted);
 }
 
+.format-bar-button.is-active {
+  background: var(--surface-muted);
+}
+
 .format-bar-image {
   margin-right: 4px;
   border-right: 1px solid var(--border);

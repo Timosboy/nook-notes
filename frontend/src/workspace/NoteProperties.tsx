@@ -1,5 +1,5 @@
 import { CalendarBlank, Tag, X, type Icon } from '@phosphor-icons/react'
-import type { ReactNode } from 'react'
+import { memo, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { CategoryChip } from '../categories/CategoryChip'
 import { CategoryPicker } from '../categories/CategoryPicker'
@@ -15,7 +15,7 @@ type Props = {
   onCreateCategory: (name: string) => Promise<void>
 }
 
-export function NoteProperties({ note, categories, onToggleCategory, onCreateCategory }: Props) {
+export const NoteProperties = memo(function NoteProperties({ note, categories, onToggleCategory, onCreateCategory }: Props) {
   return (
     <dl className="properties">
       <Property icon={Tag} label="Categories">
@@ -60,7 +60,7 @@ export function NoteProperties({ note, categories, onToggleCategory, onCreateCat
       </Property>
     </dl>
   )
-}
+})
 
 type PropertyProps = {
   icon: Icon
