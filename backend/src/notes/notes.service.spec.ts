@@ -97,6 +97,7 @@ describe('NotesService', () => {
     expect(notesRepository.create).toHaveBeenCalledWith({
       title: 'Note',
       content: 'Text',
+      emoji: null,
     });
   });
 
@@ -106,6 +107,21 @@ describe('NotesService', () => {
     expect(notesRepository.create).toHaveBeenCalledWith({
       title: 'Note',
       content: '',
+      emoji: null,
+    });
+  });
+
+  it('creates a note with an emoji', async () => {
+    const note = { id: '1', title: 'Note', content: '', emoji: '🚀' };
+    notesRepository.create.mockResolvedValue(note);
+
+    await expect(service.create({ title: 'Note', emoji: '🚀' })).resolves.toBe(
+      note,
+    );
+    expect(notesRepository.create).toHaveBeenCalledWith({
+      title: 'Note',
+      content: '',
+      emoji: '🚀',
     });
   });
 
@@ -138,6 +154,24 @@ describe('NotesService', () => {
       }),
     ).rejects.toThrow(NotFoundException);
     expect(notesRepository.save).not.toHaveBeenCalled();
+  });
+
+  it('changes and clears a note emoji', async () => {
+    const note = {
+      id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+      title: 'Note',
+      content: '',
+      emoji: '🚀',
+    };
+    notesRepository.findById.mockResolvedValue(note);
+    notesRepository.save.mockResolvedValue(note);
+
+    await service.update(note.id, { emoji: '🌿' });
+    expect(note.emoji).toBe('🌿');
+
+    await service.update(note.id, { emoji: null });
+    expect(note.emoji).toBeNull();
+    expect(notesRepository.save).toHaveBeenCalledTimes(2);
   });
 
   it('archives an existing note', async () => {
