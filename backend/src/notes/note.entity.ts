@@ -25,6 +25,9 @@ export class Note {
   @Column({ type: 'text', default: '' })
   content: string;
 
+  @Column({ type: 'varchar', length: 16, nullable: true })
+  emoji: string | null;
+
   @Index()
   @Column({ default: false })
   archived: boolean;

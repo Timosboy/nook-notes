@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Note } from './note.entity';
 
-export type NewNote = Pick<Note, 'title' | 'content'>;
+export type NewNote = Pick<Note, 'title' | 'content' | 'emoji'>;
 
 @Injectable()
 export class NotesRepository {

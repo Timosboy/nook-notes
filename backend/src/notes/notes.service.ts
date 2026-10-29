@@ -34,6 +34,7 @@ export class NotesService {
     return this.notesRepository.create({
       title: dto.title,
       content: dto.content ?? '',
+      emoji: dto.emoji ?? null,
     });
   }
 

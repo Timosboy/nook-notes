@@ -37,7 +37,10 @@ export function NoteRow({ note, order, selected, onSelect }: Props) {
         aria-current={selected || undefined}
         onClick={onSelect}
       >
-        <span className="note-row-title">{note.title}</span>
+        <span className="note-row-title">
+          {note.emoji && <span className="note-row-emoji" aria-hidden="true">{note.emoji}</span>}
+          <span className="note-row-title-text">{note.title}</span>
+        </span>
         <span className="note-row-preview">{note.content || 'No content'}</span>
         <span className="note-row-meta">
           <time className="note-row-time" dateTime={note.updatedAt}>

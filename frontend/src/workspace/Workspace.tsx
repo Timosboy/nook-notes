@@ -147,6 +147,15 @@ export function Workspace() {
     listFor(note).upsert(note)
   }
 
+  async function changeEmoji(note: Note, emoji: string | null) {
+    try {
+      const updated = await notesApi.update(note.id, { emoji })
+      listFor(updated).upsert(updated)
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Something went wrong')
+    }
+  }
+
   async function addImages(note: Note, files: File[]) {
     let count = note.images.length
 
@@ -360,6 +369,7 @@ export function Workspace() {
             onCreateCategory={(name) => createCategory(selected, name)}
             onAddImages={(files) => addImages(selected, files)}
             onRemoveImage={(image) => removeImage(selected, image)}
+            onChangeEmoji={(emoji) => void changeEmoji(selected, emoji)}
             onBack={() => setSelectedId(null)}
           />
         ) : (

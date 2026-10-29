@@ -49,7 +49,10 @@ export function EditorTopbar({
       <nav className="breadcrumb" aria-label="Breadcrumb">
         <span className="breadcrumb-section">{section}</span>
         <CaretRight size={11} weight="bold" aria-hidden="true" />
-        <span className="breadcrumb-current">{title.trim() || 'Untitled'}</span>
+        <span className="breadcrumb-current">
+          {note.emoji && <span className="breadcrumb-emoji" aria-hidden="true">{note.emoji}</span>}
+          {title.trim() || 'Untitled'}
+        </span>
       </nav>
 
       <div className="topbar-tools">
