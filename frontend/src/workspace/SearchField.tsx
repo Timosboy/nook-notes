@@ -20,7 +20,7 @@ export function SearchField({ value, onChange, ref }: Props) {
         onChange={(event) => onChange(event.target.value)}
         onKeyDown={(event) => event.key === 'Escape' && onChange('')}
       />
-      {!value && <kbd>/</kbd>}
+      {!value && <kbd aria-keyshortcuts="/" title="Press / to search">/</kbd>}
     </label>
   )
 }

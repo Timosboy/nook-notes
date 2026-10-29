@@ -1,8 +1,10 @@
 import type { ReactNode } from 'react'
-import { Archive, Notepad, Plus, type Icon } from '@phosphor-icons/react'
+import { Archive, Notepad, Plus, Rows, SidebarSimple, type Icon } from '@phosphor-icons/react'
+import { AnimatePresence, motion } from 'motion/react'
 import { AppLogo } from './AppLogo'
 import { BrandCredit } from './BrandCredit'
 import { ThemeCycleButton, ThemeSwitch } from './ThemeSwitch'
+import { ease } from '../lib/motion'
 
 export type View = 'active' | 'archived'
 
@@ -17,16 +19,56 @@ type Props = {
   creating: boolean
   onViewChange: (view: View) => void
   onCreate: () => void
+  sidebarOpen: boolean
+  listOpen: boolean
+  onHide: () => void
+  onShowList: () => void
   children?: ReactNode
   inert?: boolean
 }
 
-export function Sidebar({ view, counts, creating, onViewChange, onCreate, children, inert }: Props) {
+export function Sidebar({ view, counts, creating, onViewChange, onCreate, sidebarOpen, listOpen, onHide, onShowList, children, inert }: Props) {
   return (
     <aside className="sidebar" inert={inert}>
       <div className="sidebar-content">
         <div className="sidebar-top">
-          <AppLogo />
+          <div className="sidebar-brand-row">
+            <AppLogo />
+            <div className="panel-header-controls">
+              <AnimatePresence initial={false}>
+                {sidebarOpen && !listOpen && (
+                  <motion.button
+                    key="show-list"
+                    className="icon-button panel-control"
+                    aria-label="Show note list"
+                    title="Show note list (])"
+                    onClick={onShowList}
+                    initial={{ opacity: 0, scale: 0.85 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.85 }}
+                    transition={{ duration: 0.16, ease }}
+                  >
+                    <Rows size={16} weight="bold" />
+                  </motion.button>
+                )}
+                {sidebarOpen && (
+                  <motion.button
+                    key="hide-sidebar"
+                    className="icon-button panel-control"
+                    aria-label="Hide sidebar"
+                    title="Hide sidebar ([)"
+                    onClick={onHide}
+                    initial={{ opacity: 0, scale: 0.85 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.85 }}
+                    transition={{ duration: 0.16, ease }}
+                  >
+                    <SidebarSimple size={16} weight="bold" />
+                  </motion.button>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
 
           <ThemeCycleButton />
           <button className="button button-primary sidebar-new" onClick={onCreate} disabled={creating}>

@@ -1,24 +1,12 @@
 import type { ReactNode } from 'react'
 import { Archive, ArrowLeft, ArrowUUpLeft, CaretRight, PushPin, Trash } from '@phosphor-icons/react'
-import { timeAgo } from '../lib/format'
-import { countWords, readingMinutes } from '../lib/stats'
-import { markdownToPlain } from '../lib/plainText'
-import type { SaveStatus } from '../lib/useAutosave'
 import type { Note } from '../notes/types'
-
-const STATUS_LABEL: Record<SaveStatus, string> = {
-  saved: 'Saved',
-  saving: 'Saving...',
-  error: 'Not saved',
-}
 
 type Props = {
   leading?: ReactNode
   note: Note
   title: string
-  content: string
   section: string
-  status: SaveStatus | 'invalid'
   onBack: () => void
   onTogglePin: () => void
   onToggleArchive: () => void
@@ -29,16 +17,13 @@ export function EditorTopbar({
   leading,
   note,
   title,
-  content,
   section,
-  status,
   onBack,
   onTogglePin,
   onToggleArchive,
   onDelete,
 }: Props) {
   const archiveLabel = note.archived ? 'Restore note' : 'Archive note'
-  const words = countWords(markdownToPlain(content))
 
   return (
     <header className="editor-topbar">
@@ -57,16 +42,6 @@ export function EditorTopbar({
       </nav>
 
       <div className="topbar-tools">
-        <span className={`save-status is-${status}`} aria-live="polite">
-          <span className="save-dot" aria-hidden="true" />
-          {status === 'invalid' ? 'Title required' : STATUS_LABEL[status]}
-        </span>
-        <span className="topbar-stats">
-          {words} {words === 1 ? 'word' : 'words'}{words > 0 ? ` · ${readingMinutes(words)} min read` : ''}
-        </span>
-        <time className="topbar-edited" dateTime={note.updatedAt}>
-          Edited {timeAgo(note.updatedAt).toLowerCase()}
-        </time>
         {!note.archived && (
           <button
             className="icon-button"

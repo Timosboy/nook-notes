@@ -283,12 +283,14 @@ export function Workspace() {
   })
 
   const panelToggles = (
-    <PanelToggles
-      sidebar={sidebar}
-      list={list}
-      onToggleSidebar={toggleSidebar}
-      onToggleList={toggleList}
-    />
+    !sidebar && !list ? (
+      <PanelToggles
+        sidebar={sidebar}
+        list={list}
+        onToggleSidebar={toggleSidebar}
+        onToggleList={toggleList}
+      />
+    ) : null
   )
 
   function renderList() {
@@ -320,8 +322,12 @@ export function Workspace() {
         view={view}
         counts={{ active: active.notes.length, archived: archived.notes.length }}
         creating={creating}
+        sidebarOpen={sidebar}
+        listOpen={list}
         onViewChange={changeView}
         onCreate={createNote}
+        onHide={toggleSidebar}
+        onShowList={toggleList}
       >
         <CategoryNav
           categories={categories.categories}
@@ -337,6 +343,10 @@ export function Workspace() {
       <Suspense fallback={<section className="list-pane" aria-label={copy.title} />}>
         <NoteListPane
           inert={desktop && !list}
+          sidebarOpen={sidebar}
+          listOpen={list}
+          onHide={toggleList}
+          onShowSidebar={toggleSidebar}
           title={copy.title}
           listKey={`${view}:${categoryId ?? 'all'}`}
           notes={visibleNotes}

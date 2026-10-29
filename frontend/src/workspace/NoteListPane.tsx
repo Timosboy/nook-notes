@@ -1,6 +1,8 @@
 import type { ReactNode, Ref } from 'react'
 import { AnimatePresence } from 'motion/react'
-import { PushPin } from '@phosphor-icons/react'
+import { PushPin, SidebarSimple } from '@phosphor-icons/react'
+import { motion } from 'motion/react'
+import { ease } from '../lib/motion'
 import type { Note } from '../notes/types'
 import { NoteRow } from './NoteRow'
 import { SearchField } from './SearchField'
@@ -20,6 +22,10 @@ type Props = {
   children?: ReactNode
   listKey?: string
   inert?: boolean
+  sidebarOpen: boolean
+  listOpen: boolean
+  onHide: () => void
+  onShowSidebar: () => void
 }
 
 function partitionNotes(notes: Note[]) {
@@ -44,6 +50,10 @@ export function NoteListPane({
   children,
   listKey,
   inert,
+  sidebarOpen,
+  listOpen,
+  onHide,
+  onShowSidebar,
 }: Props) {
   const { pinned: pinnedNotes, others: otherNotes } = partitionNotes(notes)
   const hasPinned = pinnedNotes.length > 0
@@ -65,8 +75,42 @@ export function NoteListPane({
     <section className="list-pane" aria-label={title} inert={inert}>
       <div className="list-pane-content">
         <header className="list-header">
+          <AnimatePresence initial={false}>
+            {listOpen && !sidebarOpen && (
+              <motion.button
+                key="show-sidebar"
+                className="icon-button panel-control"
+                aria-label="Show sidebar"
+                title="Show sidebar ([)"
+                onClick={onShowSidebar}
+                initial={{ opacity: 0, scale: 0.85 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.85 }}
+                transition={{ duration: 0.16, ease }}
+              >
+                <SidebarSimple size={16} weight="bold" />
+              </motion.button>
+            )}
+          </AnimatePresence>
           <h1 className="list-title">{title}</h1>
           <span className="list-count">{notes.length}</span>
+          <AnimatePresence initial={false}>
+            {listOpen && (
+              <motion.button
+                key="hide-list"
+                className="icon-button panel-control list-hide-control"
+                aria-label="Hide note list"
+                title="Hide note list (])"
+                onClick={onHide}
+                initial={{ opacity: 0, scale: 0.85 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.85 }}
+                transition={{ duration: 0.16, ease }}
+              >
+                <SidebarSimple size={16} weight="bold" />
+              </motion.button>
+            )}
+          </AnimatePresence>
         </header>
 
         <div className="list-search">

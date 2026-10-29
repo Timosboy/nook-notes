@@ -1,10 +1,12 @@
-import { lazy, Suspense, useCallback, useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
 import { ImageSquare, NotePencil } from '@phosphor-icons/react'
 import type { Editor } from '@tiptap/react'
 import type { Category } from '../categories/types'
 import { toneStyle } from '../categories/tone'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 import { useAutosave } from '../lib/useAutosave'
+import { countWords, readingMinutes } from '../lib/stats'
+import { markdownToPlain } from '../lib/plainText'
 import { IMAGE_TYPES } from '../lib/imageRules'
 import { storedImagePath } from '../lib/imageUrl'
 import type { Note, NoteImage, NoteInput } from '../notes/types'
@@ -65,6 +67,7 @@ export function NoteEditor({
 }: Props) {
   const [title, setTitle] = useState(note.title)
   const [content, setContent] = useState(() => initialContent(note))
+  const [debouncedContent, setDebouncedContent] = useState(() => initialContent(note))
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [draggingFiles, setDraggingFiles] = useState(false)
   const [bodyFocused, setBodyFocused] = useState(false)
@@ -100,6 +103,12 @@ export function NoteEditor({
   }, [])
 
   const status = useAutosave({ title: title.trim(), content }, saveSnapshot, { enabled: hasTitle && edited })
+  const words = useMemo(() => countWords(markdownToPlain(debouncedContent)), [debouncedContent])
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedContent(content), 600)
+    return () => window.clearTimeout(timer)
+  }, [content])
 
   const changeContent = useCallback((markdown: string) => {
     setEdited(true)
@@ -168,9 +177,7 @@ export function NoteEditor({
         leading={leading}
         note={note}
         title={title}
-        content={content}
         section={section}
-        status={hasTitle ? status : 'invalid'}
         onBack={onBack}
         onToggleArchive={onToggleArchive}
         onTogglePin={onTogglePin}
@@ -240,6 +247,7 @@ export function NoteEditor({
           categories={categories}
           onToggleCategory={toggleNoteCategory}
           onCreateCategory={createNoteCategory}
+          status={hasTitle ? status : 'invalid'}
         />
 
         <Suspense fallback={<div className="rich-editor" />}>
@@ -257,6 +265,7 @@ export function NoteEditor({
             onBlur={blurEditor}
           />
         </Suspense>
+        {words > 0 && <p className="document-word-count">{words} {words === 1 ? 'word' : 'words'} · {readingMinutes(words)} min read</p>}
       </article>
 
       {bodyFocused && <FormatBar editor={editorState} onImage={openImagePicker} />}
