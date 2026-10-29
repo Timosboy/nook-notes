@@ -137,7 +137,7 @@
 
 .note-row.is-selected {
   background: var(--surface-muted);
-  box-shadow: inset 2px 0 0 var(--text-strong);
+  box-shadow: 0 0 0 1px var(--border);
 }
 
 .note-row-title {
