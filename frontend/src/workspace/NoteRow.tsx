@@ -2,6 +2,7 @@ import { motion } from 'motion/react'
 import { CategoryChip } from '../categories/CategoryChip'
 import { timeAgo } from '../lib/format'
 import { ease, spring } from '../lib/motion'
+import { notesApi } from '../notes/api'
 import type { Note } from '../notes/types'
 
 const MAX_CHIPS = 3
@@ -31,7 +32,7 @@ export function NoteRow({ note, order, selected, onSelect }: Props) {
       transition={{ layout: spring }}
     >
       <button
-        className={`note-row${selected ? ' is-selected' : ''}`}
+        className={`note-row${selected ? ' is-selected' : ''}${note.images.length ? ' has-images' : ''}`}
         aria-current={selected || undefined}
         onClick={onSelect}
       >
@@ -50,6 +51,14 @@ export function NoteRow({ note, order, selected, onSelect }: Props) {
             </span>
           )}
         </span>
+        {note.images[0] && (
+          <img
+            className="note-row-image"
+            src={notesApi.imageUrl(note.id, note.images[0].id)}
+            alt=""
+            loading="lazy"
+          />
+        )}
       </button>
     </motion.li>
   )

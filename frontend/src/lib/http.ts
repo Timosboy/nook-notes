@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api'
+export const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api'
 
 export class ApiError extends Error {
   readonly status: number
@@ -25,7 +25,9 @@ export async function request<T>(path: string, options: RequestInit = {}): Promi
 }
 
 async function send(path: string, options: RequestInit): Promise<Response> {
-  const headers = options.body ? { 'Content-Type': 'application/json' } : undefined
+  const headers = options.body && !(options.body instanceof FormData)
+    ? { 'Content-Type': 'application/json' }
+    : undefined
 
   try {
     return await fetch(`${BASE_URL}${path}`, { ...options, headers })
