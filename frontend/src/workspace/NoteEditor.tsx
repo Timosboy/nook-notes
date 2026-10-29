@@ -1,4 +1,4 @@
-import { useRef, useState, type ClipboardEvent, type DragEvent, type KeyboardEvent } from 'react'
+import { useRef, useState, type ClipboardEvent, type DragEvent, type KeyboardEvent, type ReactNode } from 'react'
 import { NotePencil } from '@phosphor-icons/react'
 import type { Category } from '../categories/types'
 import { toneStyle } from '../categories/tone'
@@ -54,6 +54,7 @@ function handleBodyKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
 }
 
 type Props = {
+  leading?: ReactNode
   note: Note
   section: string
   fresh: boolean
@@ -70,6 +71,7 @@ type Props = {
 }
 
 export function NoteEditor({
+  leading,
   note,
   section,
   fresh,
@@ -143,6 +145,7 @@ export function NoteEditor({
   return (
     <>
       <EditorTopbar
+        leading={leading}
         note={note}
         title={title}
         content={content}

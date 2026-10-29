@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { Archive, ArrowLeft, ArrowUUpLeft, CaretRight, PushPin, Trash } from '@phosphor-icons/react'
 import { timeAgo } from '../lib/format'
 import { countWords, readingMinutes } from '../lib/stats'
@@ -11,6 +12,7 @@ const STATUS_LABEL: Record<SaveStatus, string> = {
 }
 
 type Props = {
+  leading?: ReactNode
   note: Note
   title: string
   content: string
@@ -23,6 +25,7 @@ type Props = {
 }
 
 export function EditorTopbar({
+  leading,
   note,
   title,
   content,
@@ -38,6 +41,7 @@ export function EditorTopbar({
 
   return (
     <header className="editor-topbar">
+      {leading}
       <button className="icon-button back-button" aria-label="Back to notes" onClick={onBack}>
         <ArrowLeft size={16} weight="bold" />
       </button>

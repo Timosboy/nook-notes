@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { MagnifyingGlass, NotePencil, Plus } from '@phosphor-icons/react'
 import { timeAgo } from '../lib/format'
 import { toneStyle } from '../categories/tone'
@@ -6,6 +7,7 @@ import type { Note } from '../notes/types'
 const RECENT_COUNT = 3
 
 type Props = {
+  leading?: ReactNode
   notes: Note[]
   archivedCount: number
   onOpen: (note: Note) => void
@@ -21,11 +23,12 @@ function greeting(hour = new Date().getHours()) {
 
 const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? '' : 's'}`
 
-export function Home({ notes, archivedCount, onOpen, onCreate, onSearch }: Props) {
+export function Home({ leading, notes, archivedCount, onOpen, onCreate, onSearch }: Props) {
   const recent = notes.slice(0, RECENT_COUNT)
 
   return (
     <section className="home">
+      {leading && <div className="home-leading">{leading}</div>}
       <h2 className="home-title">{greeting()}</h2>
       <p className="home-summary">
         {plural(notes.length, 'active note')} · {archivedCount} archived
