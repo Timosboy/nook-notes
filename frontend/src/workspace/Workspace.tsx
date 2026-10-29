@@ -1,4 +1,7 @@
 import { useRef, useState } from 'react'
+import { categoriesApi } from '../categories/api'
+import { nextColor, type Category } from '../categories/types'
+import { useCategories } from '../categories/useCategories'
 import { Toast } from '../components/Toast'
 import { useShortcut } from '../lib/useShortcut'
 import { useToast } from '../lib/useToast'
@@ -32,6 +35,7 @@ const matches = (note: Note, query: string) =>
 export function Workspace() {
   const active = useNotes(false)
   const archived = useNotes(true)
+  const categories = useCategories()
   const [view, setView] = useState<View>('active')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
@@ -78,6 +82,25 @@ export function Workspace() {
   async function saveNote(id: string, input: NoteInput) {
     const note = await notesApi.update(id, input)
     listFor(note).upsert(note)
+  }
+
+  async function toggleCategory(note: Note, category: Category) {
+    const tagged = note.categories.some(({ id }) => id === category.id)
+
+    try {
+      const updated = tagged
+        ? await notesApi.removeCategory(note.id, category.id)
+        : await notesApi.addCategory(note.id, category.id)
+      listFor(updated).upsert(updated)
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Something went wrong')
+    }
+  }
+
+  async function createCategory(note: Note, name: string) {
+    const category = await categoriesApi.create(name, nextColor(categories.categories.length))
+    categories.add(category)
+    await toggleCategory(note, category)
   }
 
   async function moveNote(note: Note) {
@@ -166,6 +189,9 @@ export function Workspace() {
             onSave={(input) => saveNote(selected.id, input)}
             onDelete={() => deleteNote(selected.id)}
             onToggleArchive={() => void toggleArchive(selected)}
+            categories={categories.categories}
+            onToggleCategory={(category) => void toggleCategory(selected, category)}
+            onCreateCategory={(name) => createCategory(selected, name)}
             onBack={() => setSelectedId(null)}
           />
         ) : (

@@ -491,3 +491,28 @@
   text-transform: uppercase;
 }
 
+
+.properties {
+  margin: 20px 0 0;
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.property {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+
+.property dt {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.property dd {
+  position: relative;
+  margin: 0;
+  align-items: center;
+}
