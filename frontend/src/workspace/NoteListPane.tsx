@@ -1,5 +1,6 @@
 import type { ReactNode, Ref } from 'react'
 import { AnimatePresence } from 'motion/react'
+import { PushPin } from '@phosphor-icons/react'
 import type { Note } from '../notes/types'
 import { NoteRow } from './NoteRow'
 import { SearchField } from './SearchField'
@@ -17,6 +18,13 @@ type Props = {
   listKey?: string
 }
 
+function partitionNotes(notes: Note[]) {
+  return {
+    pinned: notes.filter((note) => note.pinned),
+    others: notes.filter((note) => !note.pinned),
+  }
+}
+
 export function NoteListPane({
   title,
   notes,
@@ -29,6 +37,19 @@ export function NoteListPane({
   children,
   listKey,
 }: Props) {
+  const { pinned: pinnedNotes, others: otherNotes } = partitionNotes(notes)
+  const hasPinned = pinnedNotes.length > 0
+
+  const renderRow = (note: Note, order: number) => (
+    <NoteRow
+      key={note.id}
+      note={note}
+      order={order}
+      selected={note.id === selectedId}
+      onSelect={() => onSelect(note.id)}
+    />
+  )
+
   return (
     <section className="list-pane" aria-label={title}>
       <header className="list-header">
@@ -44,15 +65,19 @@ export function NoteListPane({
       {children ?? (
         <ul className="note-rows" key={listKey}>
           <AnimatePresence mode="popLayout">
-            {notes.map((note, index) => (
-              <NoteRow
-                key={note.id}
-                note={note}
-                order={index}
-                selected={note.id === selectedId}
-                onSelect={() => onSelect(note.id)}
-              />
-            ))}
+            {hasPinned && (
+              <li className="note-section-heading" role="presentation" key="pinned-heading">
+                <PushPin size={12} weight="fill" aria-hidden="true" />
+                <span>Pinned</span>
+              </li>
+            )}
+            {pinnedNotes.map((note, index) => renderRow(note, index))}
+            {hasPinned && otherNotes.length > 0 && (
+              <li className="note-section-heading" role="presentation" key="others-heading">
+                Others
+              </li>
+            )}
+            {otherNotes.map((note, index) => renderRow(note, pinnedNotes.length + index))}
           </AnimatePresence>
         </ul>
       )}

@@ -10,7 +10,8 @@ type Result = {
 
 const messageOf = (err: unknown) => (err instanceof Error ? err.message : 'Something went wrong')
 
-const byLatest = (a: Note, b: Note) => b.updatedAt.localeCompare(a.updatedAt)
+const byPinnedAndLatest = (a: Note, b: Note) =>
+  Number(b.pinned) - Number(a.pinned) || b.updatedAt.localeCompare(a.updatedAt)
 
 export function useNotes(archived: boolean) {
   const [result, setResult] = useState<Result | null>(null)
@@ -37,7 +38,7 @@ export function useNotes(archived: boolean) {
 
   const upsert = useCallback(
     (note: Note) =>
-      updateNotes((notes) => [note, ...notes.filter(({ id }) => id !== note.id)].sort(byLatest)),
+      updateNotes((notes) => [note, ...notes.filter(({ id }) => id !== note.id)].sort(byPinnedAndLatest)),
     [updateNotes],
   )
 

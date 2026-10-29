@@ -196,6 +196,20 @@ export function Workspace() {
     }
   }
 
+  async function togglePin(note: Note) {
+    setActionError(null)
+
+    try {
+      const updated = note.pinned
+        ? await notesApi.unpin(note.id)
+        : await notesApi.pin(note.id)
+      listFor(updated).upsert(updated)
+      showToast(updated.pinned ? 'Note pinned' : 'Note unpinned')
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Something went wrong')
+    }
+  }
+
   async function undoMove(note: Note) {
     try {
       const restored = await moveNote(note)
@@ -287,6 +301,7 @@ export function Workspace() {
             onSave={(input) => saveNote(selected.id, input)}
             onDelete={() => deleteNote(selected.id)}
             onToggleArchive={() => void toggleArchive(selected)}
+            onTogglePin={() => void togglePin(selected)}
             categories={categories.categories}
             onToggleCategory={(category) => void toggleCategory(selected, category)}
             onCreateCategory={(name) => createCategory(selected, name)}

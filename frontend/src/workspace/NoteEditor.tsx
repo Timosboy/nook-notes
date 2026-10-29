@@ -58,6 +58,7 @@ type Props = {
   onSave: (input: NoteInput) => Promise<void>
   onDelete: () => Promise<void>
   onToggleArchive: () => void
+  onTogglePin: () => void
   onBack: () => void
   categories: Category[]
   onToggleCategory: (category: Category) => void
@@ -73,6 +74,7 @@ export function NoteEditor({
   onSave,
   onDelete,
   onToggleArchive,
+  onTogglePin,
   onBack,
   categories,
   onToggleCategory,
@@ -117,6 +119,7 @@ export function NoteEditor({
         status={hasTitle ? status : 'invalid'}
         onBack={onBack}
         onToggleArchive={onToggleArchive}
+        onTogglePin={onTogglePin}
         onDelete={() => setConfirmingDelete(true)}
       />
 

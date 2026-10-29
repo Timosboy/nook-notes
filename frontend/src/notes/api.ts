@@ -17,6 +17,10 @@ export const notesApi = {
 
   unarchive: (id: string) => request<Note>(`/notes/${id}/unarchive`, { method: 'PATCH' }),
 
+  pin: (id: string) => request<Note>(`/notes/${id}/pin`, { method: 'PATCH' }),
+
+  unpin: (id: string) => request<Note>(`/notes/${id}/unpin`, { method: 'PATCH' }),
+
   addCategory: (id: string, categoryId: string) =>
     request<Note>(`/notes/${id}/categories/${categoryId}`, { method: 'PUT' }),
 
