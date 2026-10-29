@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { Archive, Notepad, Plus, type Icon } from '@phosphor-icons/react'
 
 export type View = 'active' | 'archived'
@@ -13,9 +14,10 @@ type Props = {
   creating: boolean
   onViewChange: (view: View) => void
   onCreate: () => void
+  children?: ReactNode
 }
 
-export function Sidebar({ view, counts, creating, onViewChange, onCreate }: Props) {
+export function Sidebar({ view, counts, creating, onViewChange, onCreate, children }: Props) {
   return (
     <aside className="sidebar">
       <div className="sidebar-top">
@@ -44,6 +46,8 @@ export function Sidebar({ view, counts, creating, onViewChange, onCreate }: Prop
           </button>
         ))}
       </nav>
+
+      {children}
     </aside>
   )
 }

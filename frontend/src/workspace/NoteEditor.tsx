@@ -1,5 +1,8 @@
 import { useState } from 'react'
-import { Archive, ArrowLeft, ArrowUUpLeft, Trash } from '@phosphor-icons/react'
+import { Archive, ArrowLeft, ArrowUUpLeft, Trash, X } from '@phosphor-icons/react'
+import { CategoryChip } from '../categories/CategoryChip'
+import { CategoryPicker } from '../categories/CategoryPicker'
+import type { Category } from '../categories/types'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 import { formatDate } from '../lib/format'
 import { useAutosave, type SaveStatus } from '../lib/useAutosave'
@@ -20,9 +23,22 @@ type Props = {
   onDelete: () => Promise<void>
   onToggleArchive: () => void
   onBack: () => void
+  categories: Category[]
+  onToggleCategory: (category: Category) => void
+  onCreateCategory: (name: string) => Promise<void>
 }
 
-export function NoteEditor({ note, fresh, onSave, onDelete, onToggleArchive, onBack }: Props) {
+export function NoteEditor({
+  note,
+  fresh,
+  onSave,
+  onDelete,
+  onToggleArchive,
+  onBack,
+  categories,
+  onToggleCategory,
+  onCreateCategory,
+}: Props) {
   const [title, setTitle] = useState(note.title)
   const [content, setContent] = useState(note.content)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
@@ -88,6 +104,31 @@ export function NoteEditor({ note, fresh, onSave, onDelete, onToggleArchive, onB
         onFocus={(event) => fresh && event.target.select()}
         autoFocus={fresh}
       />
+
+      <dl className="properties">
+        <div className="property">
+          <dt>Categories</dt>
+          <dd className="chips">
+            {note.categories.map((category) => (
+              <CategoryChip key={category.id} category={category}>
+                <button
+                  className="chip-remove"
+                  aria-label={`Remove ${category.name}`}
+                  onClick={() => onToggleCategory(category)}
+                >
+                  <X size={10} weight="bold" />
+                </button>
+              </CategoryChip>
+            ))}
+            <CategoryPicker
+              categories={categories}
+              selectedIds={note.categories.map(({ id }) => id)}
+              onToggle={onToggleCategory}
+              onCreate={onCreateCategory}
+            />
+          </dd>
+        </div>
+      </dl>
 
       <textarea
         className="document-body"

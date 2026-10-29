@@ -57,8 +57,9 @@ export class NotesService {
     }
 
     note.categories = [...note.categories, category];
+    await this.notesRepository.save(note);
 
-    return this.notesRepository.save(note);
+    return this.findOne(id);
   }
 
   async removeCategory(id: string, categoryId: string): Promise<Note> {
