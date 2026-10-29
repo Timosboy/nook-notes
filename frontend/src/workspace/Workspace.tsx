@@ -72,7 +72,7 @@ export function Workspace() {
   }
 
   return (
-    <div className="workspace">
+    <div className="workspace" data-view={selected ? 'editor' : 'list'}>
       <Sidebar activeCount={notes.length} creating={creating} onCreate={createNote} />
 
       <NoteListPane
@@ -96,6 +96,7 @@ export function Workspace() {
             fresh={selected.id === freshId}
             onSave={(input) => saveNote(selected.id, input)}
             onDelete={() => deleteNote(selected.id)}
+            onBack={() => setSelectedId(null)}
           />
         ) : (
           <div className="editor-placeholder">

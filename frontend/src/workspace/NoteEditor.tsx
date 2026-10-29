@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Trash } from '@phosphor-icons/react'
+import { ArrowLeft, Trash } from '@phosphor-icons/react'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 import { formatDate } from '../lib/format'
 import { useAutosave, type SaveStatus } from '../lib/useAutosave'
@@ -18,9 +18,10 @@ type Props = {
   fresh: boolean
   onSave: (input: NoteInput) => Promise<void>
   onDelete: () => Promise<void>
+  onBack: () => void
 }
 
-export function NoteEditor({ note, fresh, onSave, onDelete }: Props) {
+export function NoteEditor({ note, fresh, onSave, onDelete, onBack }: Props) {
   const [title, setTitle] = useState(note.title)
   const [content, setContent] = useState(note.content)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
@@ -31,6 +32,9 @@ export function NoteEditor({ note, fresh, onSave, onDelete }: Props) {
   return (
     <article className="document">
       <div className="document-bar">
+        <button className="icon-button back-button" aria-label="Back to notes" onClick={onBack}>
+          <ArrowLeft size={16} weight="bold" />
+        </button>
         <time className="document-date" dateTime={note.updatedAt}>
           {formatDate(note.updatedAt)}
         </time>

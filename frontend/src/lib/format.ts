@@ -1,6 +1,6 @@
 const dateFormat = new Intl.DateTimeFormat('en', {
-  weekday: 'long',
-  month: 'long',
+  weekday: 'short',
+  month: 'short',
   day: 'numeric',
   hour: 'numeric',
   minute: '2-digit',
