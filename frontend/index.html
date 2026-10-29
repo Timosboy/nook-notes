@@ -4,6 +4,22 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content" />
+    <meta name="theme-color" content="#fbfbfa" />
+    <script>
+      (() => {
+        const themeColors = { light: '#fbfbfa', dark: '#191919', reading: '#f4ecd8' }
+        let theme
+
+        try {
+          const savedTheme = localStorage.getItem('notes-theme')
+          if (savedTheme === 'light' || savedTheme === 'dark' || savedTheme === 'reading') theme = savedTheme
+        } catch {}
+
+        if (!theme) theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+        document.documentElement.dataset.theme = theme
+        document.querySelector('meta[name="theme-color"]').content = themeColors[theme]
+      })()
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />

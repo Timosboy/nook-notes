@@ -636,7 +636,7 @@
   border: 2px solid transparent;
   border-radius: 50%;
   background: var(--tone);
-  color: white;
+  color: var(--button-text);
   cursor: pointer;
 }
 
@@ -653,7 +653,7 @@
 
 .category-custom.is-selected {
   background: var(--tone);
-  color: white;
+  color: var(--button-text);
 }
 
 .category-color-input {

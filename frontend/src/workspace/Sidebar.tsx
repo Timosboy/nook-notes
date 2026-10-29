@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Archive, Notepad, NotePencil, Plus, type Icon } from '@phosphor-icons/react'
+import { ThemeCycleButton, ThemeSwitch } from './ThemeSwitch'
 
 export type View = 'active' | 'archived'
 
@@ -28,6 +29,7 @@ export function Sidebar({ view, counts, creating, onViewChange, onCreate, childr
           Notes
         </div>
 
+        <ThemeCycleButton />
         <button className="button button-primary sidebar-new" onClick={onCreate} disabled={creating}>
           <Plus size={16} weight="bold" />
           New note
@@ -50,6 +52,10 @@ export function Sidebar({ view, counts, creating, onViewChange, onCreate, childr
       </nav>
 
       {children}
+
+      <div className="sidebar-footer">
+        <ThemeSwitch />
+      </div>
     </aside>
   )
 }
