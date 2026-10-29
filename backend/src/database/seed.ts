@@ -6,7 +6,7 @@ const WELCOME_CONTENT = [
   'This is a small notes app. A few things to try:',
   '',
   '1. Press N to create a note and / to search',
-  '2. Type "- " or "1. " and press Enter to keep a list going',
+  '2. Type "- " or "1. " and a list starts by itself',
   '3. Select text and press Cmd+B or Cmd+I',
   '4. Click the icon above the title to pick an emoji',
   '5. Drop or paste an image into a note',
