@@ -108,7 +108,7 @@ Developed and tested on macOS (Apple silicon). `run.sh` only uses portable bash 
 - Emoji icon for each note, with a searchable picker.
 - Images inside the text of a note (JPEG, PNG, GIF, WebP, up to 5 MB each and 30 per note): paste, drag and drop onto the text, or use the insert button, and click one to see it full screen.
 - Search, a live word count and reading time.
-- An outline rail: when a note has three or more headings, a column of thin dashes at the right edge shows its structure. It highlights the heading you are reading, opens a list of titles on hover, and jumps to a heading when you click it.
+- An outline rail: when a note has three or more headings, a column of thin dashes sits in the left margin, outside the text, and shows its structure. It highlights the heading you are reading, opens a list of titles on hover, and jumps to a heading when you click it. It is hidden on narrow screens.
 - A slash menu: type `/` in a note to insert a heading, list, checklist, quote, code block, divider or image, filtering as you type.
 - A rich text editor with Markdown shortcuts: `1. ` and `- ` start a list, `[ ] ` a checklist, `# ` a heading, `> ` a quote, and `**bold**` or `_italic_` format as you type. Cmd/Ctrl+B and Cmd/Ctrl+I work, Tab indents list items. Notes are stored as Markdown text.
 - Light, night and reading themes (the reading theme uses warm paper tones with no white).
