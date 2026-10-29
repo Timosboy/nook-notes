@@ -11,6 +11,7 @@ WEB_PORT=5173
 MIN_NODE=22
 SEED=1
 STOP_DB=0
+LAN=0
 
 if [ -t 1 ]; then
   BOLD=$'\033[1m'; DIM=$'\033[2m'; RED=$'\033[31m'; GREEN=$'\033[32m'; RESET=$'\033[0m'
@@ -31,6 +32,7 @@ Sets everything up and starts the app with one command:
 
 Options:
   --no-seed    do not load the demo notes into an empty database
+  --lan        also open the app to your local network, to try it on a phone
   --down       stop the database container and exit (data is kept)
   -h, --help   show this help
 
@@ -41,11 +43,23 @@ EOF
 for arg in "$@"; do
   case "$arg" in
     --no-seed) SEED=0 ;;
+    --lan) LAN=1 ;;
     --down) STOP_DB=1 ;;
     -h|--help) usage; exit 0 ;;
     *) usage; die "Unknown option: $arg" ;;
   esac
 done
+
+lan_ip() {
+  local ip=""
+  if command -v ipconfig >/dev/null 2>&1; then
+    ip="$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null || true)"
+  fi
+  if [ -z "$ip" ] && command -v hostname >/dev/null 2>&1; then
+    ip="$(hostname -I 2>/dev/null | awk '{print $1}' || true)"
+  fi
+  printf '%s' "$ip"
+}
 
 port_in_use() {
   (exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null
@@ -172,10 +186,21 @@ fi
 step "Starting the app"
 set -m
 trap cleanup INT TERM EXIT
-npm --prefix backend run start:dev >"$RUN_DIR/backend.log" 2>&1 &
-API_PID=$!
-npm --prefix frontend run dev >"$RUN_DIR/frontend.log" 2>&1 &
-WEB_PID=$!
+LAN_IP=""
+if [ "$LAN" -eq 1 ]; then
+  LAN_IP="$(lan_ip)"
+  [ -n "$LAN_IP" ] || die "Could not find your local network address. Are you connected to Wi-Fi?"
+  ok "network address $LAN_IP"
+  FRONTEND_URL="http://localhost:$WEB_PORT,http://$LAN_IP:$WEB_PORT" npm --prefix backend run start:dev >"$RUN_DIR/backend.log" 2>&1 &
+  API_PID=$!
+  VITE_API_URL="http://$LAN_IP:$API_PORT/api" npm --prefix frontend run dev -- --host >"$RUN_DIR/frontend.log" 2>&1 &
+  WEB_PID=$!
+else
+  npm --prefix backend run start:dev >"$RUN_DIR/backend.log" 2>&1 &
+  API_PID=$!
+  npm --prefix frontend run dev >"$RUN_DIR/frontend.log" 2>&1 &
+  WEB_PID=$!
+fi
 
 wait_for "API is up" 90 curl -sf "http://localhost:$API_PORT/api/notes" \
   || { tail -n 30 "$RUN_DIR/backend.log"; die "The API did not start (log: .run/backend.log)."; }
@@ -185,6 +210,9 @@ wait_for "web app is up" 60 curl -sf "http://localhost:$WEB_PORT" \
 printf '\n%sNotes is running%s\n' "$BOLD" "$RESET"
 printf '  App  http://localhost:%s\n' "$WEB_PORT"
 printf '  API  http://localhost:%s/api\n' "$API_PORT"
+if [ -n "$LAN_IP" ]; then
+  printf '\n%sOn your phone (same Wi-Fi):%s\n  http://%s:%s\n' "$BOLD" "$RESET" "$LAN_IP" "$WEB_PORT"
+fi
 printf '%s  Press Ctrl+C to stop. The database keeps running; ./run.sh --down stops it.%s\n\n' "$DIM" "$RESET"
 
 while kill -0 "$API_PID" 2>/dev/null && kill -0 "$WEB_PID" 2>/dev/null; do
