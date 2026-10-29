@@ -100,6 +100,9 @@ ensure_env() {
   local dir="$1"
   if [ ! -f "$dir/.env" ]; then
     cp "$dir/.env.example" "$dir/.env"
+    if [ "$dir" = "backend" ] && [ -n "${DB_PORT:-}" ]; then
+      sed "s/^DB_PORT=.*/DB_PORT=$DB_PORT/" "$dir/.env" >"$dir/.env.tmp" && mv "$dir/.env.tmp" "$dir/.env"
+    fi
     ok "created $dir/.env from .env.example"
   fi
 }
