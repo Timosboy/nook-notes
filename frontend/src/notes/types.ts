@@ -4,6 +4,7 @@ export type Note = {
   id: string
   title: string
   content: string
+  emoji: string | null
   archived: boolean
   pinned: boolean
   categories: Category[]
@@ -23,4 +24,5 @@ export type NoteImage = {
 export type NoteInput = {
   title: string
   content: string
+  emoji?: string | null
 }

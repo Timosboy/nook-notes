@@ -13,6 +13,7 @@ import { NoteProperties } from './NoteProperties'
 import { NoteImages } from './NoteImages'
 import { IMAGE_TYPES } from '../lib/imageRules'
 import { FormatBar } from './FormatBar'
+import { EmojiPicker } from '../emoji/EmojiPicker'
 
 const TITLE_MAX_LENGTH = 120
 
@@ -68,6 +69,7 @@ type Props = {
   onCreateCategory: (name: string) => Promise<void>
   onAddImages: (files: File[]) => Promise<void>
   onRemoveImage: (image: NoteImage) => Promise<void>
+  onChangeEmoji: (emoji: string | null) => void
 }
 
 export function NoteEditor({
@@ -85,12 +87,14 @@ export function NoteEditor({
   onCreateCategory,
   onAddImages,
   onRemoveImage,
+  onChangeEmoji,
 }: Props) {
   const [title, setTitle] = useState(note.title)
   const [content, setContent] = useState(note.content)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [draggingFiles, setDraggingFiles] = useState(false)
   const [bodyFocused, setBodyFocused] = useState(false)
+  const [emojiPickerOpen, setEmojiPickerOpen] = useState(false)
   const body = useRef<HTMLTextAreaElement>(null)
   const imagePicker = useRef<HTMLInputElement>(null)
 
@@ -170,9 +174,24 @@ export function NoteEditor({
         }}
         onDrop={handleDrop}
       >
-        <span className="document-icon tone-tile" style={toneStyle(accent)} aria-hidden="true">
-          <NotePencil size={26} weight="duotone" />
-        </span>
+        <div className="document-icon-wrap">
+          <button
+            className="document-icon tone-tile"
+            style={toneStyle(accent)}
+            aria-label="Change icon"
+            aria-haspopup="dialog"
+            aria-expanded={emojiPickerOpen}
+            onClick={() => setEmojiPickerOpen((open) => !open)}
+          >
+            {note.emoji ? <span className="document-emoji">{note.emoji}</span> : <NotePencil size={26} weight="duotone" />}
+          </button>
+          <EmojiPicker
+            open={emojiPickerOpen}
+            hasEmoji={Boolean(note.emoji)}
+            onChoose={onChangeEmoji}
+            onClose={() => setEmojiPickerOpen(false)}
+          />
+        </div>
 
         <textarea
           className="document-title"
