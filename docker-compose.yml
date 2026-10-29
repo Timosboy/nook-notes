@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:16.4-alpine
+    container_name: notes-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-notes}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-notes}
+      POSTGRES_DB: ${DB_NAME:-notes}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - notes-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-notes} -d ${DB_NAME:-notes}"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+volumes:
+  notes-data:
