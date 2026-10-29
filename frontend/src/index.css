@@ -24,6 +24,10 @@
   --green-text: #346538;
   --yellow-bg: #fbf3db;
   --yellow-text: #956400;
+  --purple-bg: #f1ecf8;
+  --purple-text: #6b4c9a;
+  --gray-bg: #efeeec;
+  --gray-text: #5f5e5a;
 
   --radius-sm: 6px;
   --radius: 10px;
@@ -55,6 +59,10 @@
     --green-text: #9ccc9f;
     --yellow-bg: #3a3220;
     --yellow-text: #e2c27a;
+    --purple-bg: #30283d;
+    --purple-text: #c7b2ea;
+    --gray-bg: #2c2c2c;
+    --gray-text: #b5b4b0;
 
     --shadow-hover: 0 2px 8px rgba(0, 0, 0, 0.3);
 
