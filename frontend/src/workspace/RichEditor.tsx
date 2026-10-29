@@ -1,23 +1,31 @@
 import { useCallback, useEffect, useRef } from 'react'
 import { TaskItem, TaskList } from '@tiptap/extension-list'
+import Image from '@tiptap/extension-image'
 import { Markdown } from '@tiptap/markdown'
 import { Placeholder } from '@tiptap/extensions'
 import { EditorContent, useEditor, type Editor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
+import { resolveImageUrl } from '../lib/imageUrl'
 import './richeditor.css'
+
+export type EditorImage = { src: string; alt: string }
 
 type Props = {
   initialContent: string
   onChange: (markdown: string) => void
-  onPasteImages: (files: File[]) => void
+  onPasteImages: (files: File[], position: number) => void
+  onDropImages: (files: File[], position: number) => void
+  onImageClick: (images: EditorImage[], index: number) => void
   onReady: (editor: Editor | null) => void
   onFocus: () => void
   onBlur: () => void
 }
 
-export function RichEditor({ initialContent, onChange, onPasteImages, onReady, onFocus, onBlur }: Props) {
+export function RichEditor({ initialContent, onChange, onPasteImages, onDropImages, onImageClick, onReady, onFocus, onBlur }: Props) {
   const changeRef = useRef(onChange)
   const pasteRef = useRef(onPasteImages)
+  const dropRef = useRef(onDropImages)
+  const imageClickRef = useRef(onImageClick)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const latest = useRef(initialContent)
   const editor = useEditor({
@@ -25,6 +33,20 @@ export function RichEditor({ initialContent, onChange, onPasteImages, onReady, o
     contentType: 'markdown',
     extensions: [
       StarterKit.configure({ link: { openOnClick: false }, underline: false }),
+      Image.configure({ inline: false, HTMLAttributes: { loading: 'lazy', draggable: 'true' } }).extend({
+        addAttributes() {
+          return {
+            ...this.parent?.(),
+            src: {
+              default: null,
+              renderHTML: (attributes) => ({
+                src: resolveImageUrl(attributes.src),
+                'data-src': attributes.src,
+              }),
+            },
+          }
+        },
+      }),
       Markdown.configure({ markedOptions: { breaks: true } }),
       TaskList,
       TaskItem.configure({ nested: true }),
@@ -49,8 +71,29 @@ export function RichEditor({ initialContent, onChange, onPasteImages, onReady, o
             .map((item) => item.getAsFile())
             .filter((file): file is File => file !== null)
         if (!files.length) return false
-        pasteRef.current(files)
+        pasteRef.current(files, _view.state.selection.from)
         return true
+      },
+      handleDrop: (view, event) => {
+        const transfer = event.dataTransfer
+        const files = Array.from(transfer?.files ?? []).filter((file) => file.type.startsWith('image/'))
+        if (!files.length) return false
+        const position = view.posAtCoords({ left: event.clientX, top: event.clientY })?.pos ?? view.state.selection.from
+        dropRef.current(files, position)
+        return true
+      },
+      handleClickOn: (view, _position, node) => {
+        if (node.type.name !== 'image') return false
+        const images: EditorImage[] = []
+        let index = -1
+        view.state.doc.descendants((current) => {
+          if (current.type.name === 'image') {
+            if (current === node) index = images.length
+            images.push({ src: current.attrs.src, alt: current.attrs.alt ?? '' })
+          }
+        })
+        if (index >= 0) imageClickRef.current(images, index)
+        return false
       },
     },
     onUpdate: ({ editor: current }) => {
@@ -78,7 +121,9 @@ export function RichEditor({ initialContent, onChange, onPasteImages, onReady, o
   useEffect(() => {
     changeRef.current = onChange
     pasteRef.current = onPasteImages
-  }, [onChange, onPasteImages])
+    dropRef.current = onDropImages
+    imageClickRef.current = onImageClick
+  }, [onChange, onPasteImages, onDropImages, onImageClick])
 
   useEffect(() => {
     onReady(editor)

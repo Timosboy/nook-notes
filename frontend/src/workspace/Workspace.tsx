@@ -162,6 +162,7 @@ export function Workspace() {
 
   async function addImages(note: Note, files: File[]) {
     let count = note.images.length
+    const uploaded: NoteImage[] = []
 
     for (const file of files) {
       const validation = checkImage(file, count)
@@ -173,24 +174,28 @@ export function Workspace() {
       try {
         const image = await notesApi.uploadImage(note.id, file)
         count += 1
+        uploaded.push(image)
         listFor(note).patch(note.id, (current) => ({ ...current, images: [...current.images, image] }))
       } catch (err) {
         showToast(err instanceof Error ? err.message : 'Something went wrong')
       }
     }
+
+    return uploaded
   }
 
-  async function removeImage(note: Note, image: NoteImage) {
-    try {
-      await notesApi.deleteImage(note.id, image.id)
-      listFor(note).patch(note.id, (current) => ({
-        ...current,
-        images: current.images.filter(({ id }) => id !== image.id),
-      }))
-      showToast('Image removed')
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Something went wrong')
-    }
+  function cleanupImages(note: Note, imageIds: string[]) {
+    void Promise.all(imageIds.map(async (imageId) => {
+      try {
+        await notesApi.deleteImage(note.id, imageId)
+        listFor(note).patch(note.id, (current) => ({
+          ...current,
+          images: current.images.filter(({ id }) => id !== imageId),
+        }))
+      } catch {
+        return
+      }
+    }))
   }
 
   async function toggleCategory(note: Note, category: Category) {
@@ -379,7 +384,7 @@ export function Workspace() {
               onToggleCategory={(category) => void toggleCategory(selected, category)}
               onCreateCategory={(name) => createCategory(selected, name)}
               onAddImages={(files) => addImages(selected, files)}
-              onRemoveImage={(image) => removeImage(selected, image)}
+              onCleanupImages={(imageIds) => cleanupImages(selected, imageIds)}
               onChangeEmoji={(emoji) => void changeEmoji(selected, emoji)}
               onBack={() => setSelectedId(null)}
             />

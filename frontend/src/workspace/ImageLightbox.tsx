@@ -1,17 +1,17 @@
 import { useEffect, useRef } from 'react'
 import { CaretLeft, CaretRight, X } from '@phosphor-icons/react'
-import { notesApi } from '../notes/api'
-import type { NoteImage } from '../notes/types'
+import { resolveImageUrl } from '../lib/imageUrl'
 import './images.css'
 
+export type LightboxImage = { src: string; alt: string }
+
 type Props = {
-  noteId: string
-  images: NoteImage[]
+  images: LightboxImage[]
   activeIndex: number | null
   onChange: (index: number | null) => void
 }
 
-export function ImageLightbox({ noteId, images, activeIndex, onChange }: Props) {
+export function ImageLightbox({ images, activeIndex, onChange }: Props) {
   const dialog = useRef<HTMLDialogElement>(null)
   const active = activeIndex === null ? null : images[activeIndex] ?? null
 
@@ -57,7 +57,7 @@ export function ImageLightbox({ noteId, images, activeIndex, onChange }: Props) 
               <CaretLeft size={24} weight="bold" />
             </button>
           )}
-          <img src={notesApi.imageUrl(noteId, active.id)} alt={active.filename} className="lightbox-image" />
+          <img src={resolveImageUrl(active.src)} alt={active.alt} className="lightbox-image" />
           {images.length > 1 && (
             <button className="lightbox-nav lightbox-next" aria-label="Next image" onClick={() => move(1)}>
               <CaretRight size={24} weight="bold" />

@@ -3,7 +3,6 @@ import { CategoryChip } from '../categories/CategoryChip'
 import { toneStyle } from '../categories/tone'
 import { timeAgo } from '../lib/format'
 import { ease, spring } from '../lib/motion'
-import { notesApi } from '../notes/api'
 import type { Note } from '../notes/types'
 import { markdownToPlain } from '../lib/plainText'
 import { NoteMenu } from './NoteMenu'
@@ -39,7 +38,7 @@ export function NoteRow({ note, order, selected, onSelect, onTogglePin, onToggle
       className="note-row-item"
     >
       <button
-        className={`note-row${selected ? ' is-selected' : ''}${note.images.length ? ' has-images' : ''}`}
+        className={`note-row${selected ? ' is-selected' : ''}`}
         aria-current={selected || undefined}
         onClick={onSelect}
       >
@@ -61,14 +60,6 @@ export function NoteRow({ note, order, selected, onSelect, onTogglePin, onToggle
             </span>
           )}
         </span>
-        {note.images[0] && (
-          <img
-            className="note-row-image"
-            src={notesApi.imageUrl(note.id, note.images[0].id)}
-            alt=""
-            loading="lazy"
-          />
-        )}
       </button>
       <NoteMenu
         note={note}

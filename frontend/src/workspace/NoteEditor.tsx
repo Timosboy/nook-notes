@@ -1,17 +1,20 @@
-import { lazy, Suspense, useCallback, useEffect, useRef, useState, type DragEvent, type KeyboardEvent, type ReactNode } from 'react'
-import { NotePencil } from '@phosphor-icons/react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
+import { ImageSquare, NotePencil } from '@phosphor-icons/react'
 import type { Editor } from '@tiptap/react'
 import type { Category } from '../categories/types'
 import { toneStyle } from '../categories/tone'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 import { useAutosave } from '../lib/useAutosave'
+import { IMAGE_TYPES } from '../lib/imageRules'
+import { storedImagePath } from '../lib/imageUrl'
 import type { Note, NoteImage, NoteInput } from '../notes/types'
 import { EditorTopbar } from './EditorTopbar'
 import { NoteProperties } from './NoteProperties'
-import { NoteImages } from './NoteImages'
-import { IMAGE_TYPES } from '../lib/imageRules'
 import { FormatBar } from './FormatBar'
 import { EmojiPicker } from '../emoji/EmojiPicker'
+import { ImageLightbox } from './ImageLightbox'
+import type { EditorImage } from './RichEditor'
+import './images.css'
 
 const RichEditor = lazy(() => import('./RichEditor').then(({ RichEditor: Component }) => ({ default: Component })))
 
@@ -30,9 +33,17 @@ type Props = {
   categories: Category[]
   onToggleCategory: (category: Category) => void
   onCreateCategory: (name: string) => Promise<void>
-  onAddImages: (files: File[]) => Promise<void>
-  onRemoveImage: (image: NoteImage) => Promise<void>
+  onAddImages: (files: File[]) => Promise<NoteImage[]>
+  onCleanupImages: (imageIds: string[]) => void
   onChangeEmoji: (emoji: string | null) => void
+}
+
+function initialContent(note: Note) {
+  const referenced = new Set(Array.from(note.content.matchAll(/!\[[^\]]*\]\(\/api\/notes\/[^/]+\/images\/([^\s)]+)\)/g), (match) => match[1]))
+  const legacy = note.images
+    .filter((image) => !referenced.has(image.id))
+    .map((image) => `![${image.filename.replace(/\.[^.]+$/, '')}](${storedImagePath(note.id, image.id)})`)
+  return legacy.length ? `${note.content}${note.content ? '\n\n' : ''}${legacy.join('\n\n')}` : note.content
 }
 
 export function NoteEditor({
@@ -49,25 +60,35 @@ export function NoteEditor({
   onToggleCategory,
   onCreateCategory,
   onAddImages,
-  onRemoveImage,
+  onCleanupImages,
   onChangeEmoji,
 }: Props) {
   const [title, setTitle] = useState(note.title)
-  const [content, setContent] = useState(note.content)
+  const [content, setContent] = useState(() => initialContent(note))
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [draggingFiles, setDraggingFiles] = useState(false)
   const [bodyFocused, setBodyFocused] = useState(false)
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false)
+  const [lightboxImages, setLightboxImages] = useState<EditorImage[]>([])
+  const [activeIndex, setActiveIndex] = useState<number | null>(null)
+  const [edited, setEdited] = useState(false)
   const editor = useRef<Editor | null>(null)
   const [editorState, setEditorState] = useState<Editor | null>(null)
   const saveRef = useRef(onSave)
+  const cleanupRef = useRef(onCleanupImages)
   const savedRef = useRef({ title: note.title, content: note.content })
   const titleRef = useRef(title)
   const contentRef = useRef(content)
   const imagePicker = useRef<HTMLInputElement>(null)
-
+  const insertPosition = useRef<number | null>(null)
+  const imagesRef = useRef(note.images)
   const hasTitle = title.trim().length > 0
   const accent = note.categories[0]?.color
+
+  useEffect(() => {
+    imagesRef.current = note.images
+    cleanupRef.current = onCleanupImages
+  }, [note.images, onCleanupImages])
 
   useEffect(() => {
     saveRef.current = onSave
@@ -78,31 +99,46 @@ export function NoteEditor({
     savedRef.current = input
   }, [])
 
-  const status = useAutosave({ title: title.trim(), content }, saveSnapshot, { enabled: hasTitle })
+  const status = useAutosave({ title: title.trim(), content }, saveSnapshot, { enabled: hasTitle && edited })
 
   const changeContent = useCallback((markdown: string) => {
+    setEdited(true)
     contentRef.current = markdown
     setContent(markdown)
   }, [])
   const toggleNoteCategory = useCallback((category: Category) => onToggleCategory(category), [onToggleCategory])
   const createNoteCategory = useCallback((name: string) => onCreateCategory(name), [onCreateCategory])
-  const addNoteImages = useCallback((files: File[]) => onAddImages(files), [onAddImages])
-  const removeNoteImage = useCallback((image: NoteImage) => onRemoveImage(image), [onRemoveImage])
 
-  function imageFiles(files: FileList | null) {
+  const addNoteImages = useCallback(async (files: File[], position: number) => {
+    const uploaded = await onAddImages(files)
+    if (!uploaded.length) return
+    if (!editor.current) {
+      onCleanupImages(uploaded.map((image) => image.id))
+      return
+    }
+    const target = Math.min(position, editor.current.state.doc.content.size)
+    editor.current.chain().focus().insertContentAt(target, uploaded.map((image) => ({
+      type: 'image',
+      attrs: { src: storedImagePath(note.id, image.id), alt: image.filename.replace(/\.[^.]+$/, '') },
+    }))).run()
+  }, [note.id, onAddImages, onCleanupImages])
+
+  function imageFiles(files: FileList | File[] | null) {
     return Array.from(files ?? []).filter((file) => IMAGE_TYPES.includes(file.type))
   }
 
-  function handleDrop(event: DragEvent<HTMLElement>) {
-    event.preventDefault()
+  function handleDrop() {
     setDraggingFiles(false)
-    const files = imageFiles(event.dataTransfer.files)
-    if (files.length) void onAddImages(files)
+  }
+
+  function openImagePicker() {
+    insertPosition.current = editor.current?.state.selection.from ?? null
+    imagePicker.current?.click()
   }
 
   function handleImagePick(files: FileList | null) {
-    const picked = Array.from(files ?? [])
-    if (picked.length) void onAddImages(picked)
+    const picked = imageFiles(files)
+    if (picked.length) void addNoteImages(picked, insertPosition.current ?? editor.current?.state.selection.from ?? 0)
   }
 
   const setEditor = useCallback((current: Editor | null) => {
@@ -119,6 +155,12 @@ export function NoteEditor({
       void saveSnapshot({ title: nextTitle, content: nextContent }).catch(() => undefined)
     }
   }, [saveSnapshot])
+
+  useEffect(() => () => {
+    const used = new Set(Array.from(contentRef.current.matchAll(/!\[[^\]]*\]\(\/api\/notes\/[^/]+\/images\/([^\s)]+)\)/g), (match) => match[1]))
+    const unused = imagesRef.current.filter((image) => !used.has(image.id)).map((image) => image.id)
+    if (unused.length) cleanupRef.current(unused)
+  }, [])
 
   return (
     <>
@@ -148,6 +190,9 @@ export function NoteEditor({
         }}
         onDrop={handleDrop}
       >
+        <button className="document-image-insert" type="button" aria-label="Insert image" onClick={openImagePicker}>
+          <ImageSquare size={18} weight="regular" />
+        </button>
         <div className="document-icon-wrap">
           <button
             className={`document-icon tone-tile${note.emoji ? ' has-emoji' : ''}`}
@@ -176,6 +221,7 @@ export function NoteEditor({
           value={title}
           onChange={(event) => {
             const value = event.target.value.replace(/\n/g, '')
+            setEdited(true)
             titleRef.current = value
             setTitle(value)
           }}
@@ -196,13 +242,16 @@ export function NoteEditor({
           onCreateCategory={createNoteCategory}
         />
 
-        <NoteImages note={note} onAddImages={addNoteImages} onRemoveImage={removeNoteImage} />
-
         <Suspense fallback={<div className="rich-editor" />}>
           <RichEditor
-            initialContent={note.content}
+            initialContent={content}
             onChange={changeContent}
-            onPasteImages={(files) => void onAddImages(files)}
+            onPasteImages={(files, position) => void addNoteImages(imageFiles(files), position)}
+            onDropImages={(files, position) => void addNoteImages(imageFiles(files), position)}
+            onImageClick={(images, index) => {
+              setLightboxImages(images)
+              setActiveIndex(index)
+            }}
             onReady={setEditor}
             onFocus={focusEditor}
             onBlur={blurEditor}
@@ -210,12 +259,7 @@ export function NoteEditor({
         </Suspense>
       </article>
 
-      {bodyFocused && (
-        <FormatBar
-          editor={editorState}
-          onImage={() => imagePicker.current?.click()}
-        />
-      )}
+      {bodyFocused && <FormatBar editor={editorState} onImage={openImagePicker} />}
 
       <input
         ref={imagePicker}
@@ -228,6 +272,8 @@ export function NoteEditor({
           event.currentTarget.value = ''
         }}
       />
+
+      <ImageLightbox images={lightboxImages} activeIndex={activeIndex} onChange={setActiveIndex} />
 
       <ConfirmDialog
         open={confirmingDelete}
