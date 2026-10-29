@@ -18,7 +18,8 @@ export class NotesRepository {
       .leftJoinAndSelect('note.categories', 'category')
       .leftJoinAndSelect('note.images', 'image')
       .where('note.archived = :archived', { archived })
-      .orderBy('note.updatedAt', 'DESC')
+      .orderBy('note.pinned', 'DESC')
+      .addOrderBy('note.updatedAt', 'DESC')
       .addOrderBy('category.name', 'ASC')
       .addOrderBy('image.createdAt', 'ASC');
 
@@ -53,6 +54,17 @@ export class NotesRepository {
 
   save(note: Note): Promise<Note> {
     return this.notes.save(note);
+  }
+
+  async setPinned(id: string, pinned: boolean): Promise<Note | null> {
+    await this.notes
+      .createQueryBuilder()
+      .update(Note)
+      .set({ pinned, updatedAt: () => '"updatedAt"' })
+      .where('id = :id', { id })
+      .execute();
+
+    return this.findById(id);
   }
 
   async remove(note: Note): Promise<void> {

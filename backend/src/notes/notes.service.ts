@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CategoriesService } from '../categories/categories.service';
 import { Note } from './note.entity';
 import { NotesRepository } from './notes.repository';
@@ -48,6 +52,33 @@ export class NotesService {
     return this.setArchived(id, false);
   }
 
+  async pin(id: string): Promise<Note> {
+    const note = await this.findOne(id);
+
+    if (note.archived) {
+      throw new BadRequestException('Archived notes cannot be pinned');
+    }
+
+    const pinned = await this.notesRepository.setPinned(id, true);
+
+    if (!pinned) {
+      throw new NotFoundException('Note not found');
+    }
+
+    return pinned;
+  }
+
+  async unpin(id: string): Promise<Note> {
+    await this.findOne(id);
+    const unpinned = await this.notesRepository.setPinned(id, false);
+
+    if (!unpinned) {
+      throw new NotFoundException('Note not found');
+    }
+
+    return unpinned;
+  }
+
   async addCategory(id: string, categoryId: string): Promise<Note> {
     const note = await this.findOne(id);
     const category = await this.categoriesService.findOne(categoryId);
@@ -72,6 +103,10 @@ export class NotesService {
   private async setArchived(id: string, archived: boolean): Promise<Note> {
     const note = await this.findOne(id);
     note.archived = archived;
+
+    if (archived) {
+      note.pinned = false;
+    }
 
     return this.notesRepository.save(note);
   }

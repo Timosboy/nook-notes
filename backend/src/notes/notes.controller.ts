@@ -55,6 +55,16 @@ export class NotesController {
     return this.notesService.unarchive(id);
   }
 
+  @Patch(':id/pin')
+  pin(@Param('id', ParseUUIDPipe) id: string): Promise<Note> {
+    return this.notesService.pin(id);
+  }
+
+  @Patch(':id/unpin')
+  unpin(@Param('id', ParseUUIDPipe) id: string): Promise<Note> {
+    return this.notesService.unpin(id);
+  }
+
   @Put(':id/categories/:categoryId')
   addCategory(
     @Param('id', ParseUUIDPipe) id: string,
