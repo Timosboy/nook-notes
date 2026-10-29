@@ -23,7 +23,7 @@ export function BrandCredit() {
   return (
     <div className="brand-credit">
       <span className="brand-credit-mark">
-        <BrandMark size={20} />
+        <BrandMark size={18} />
       </span>
       <span className="brand-credit-text">
         <span className="brand-credit-label">Made by</span>

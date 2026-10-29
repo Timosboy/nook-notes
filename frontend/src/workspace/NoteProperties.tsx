@@ -6,6 +6,7 @@ import { CategoryPicker } from '../categories/CategoryPicker'
 import type { Category } from '../categories/types'
 import { formatDate } from '../lib/format'
 import { ease } from '../lib/motion'
+import type { SaveStatus } from '../lib/useAutosave'
 import type { Note } from '../notes/types'
 
 type Props = {
@@ -13,9 +14,16 @@ type Props = {
   categories: Category[]
   onToggleCategory: (category: Category) => void
   onCreateCategory: (name: string) => Promise<void>
+  status: SaveStatus | 'invalid'
 }
 
-export const NoteProperties = memo(function NoteProperties({ note, categories, onToggleCategory, onCreateCategory }: Props) {
+const STATUS_LABEL: Record<SaveStatus, string> = {
+  saved: 'Saved',
+  saving: 'Saving...',
+  error: 'Not saved',
+}
+
+export const NoteProperties = memo(function NoteProperties({ note, categories, onToggleCategory, onCreateCategory, status }: Props) {
   return (
     <dl className="properties">
       <Property icon={Tag} label="Categories">
@@ -63,6 +71,10 @@ export const NoteProperties = memo(function NoteProperties({ note, categories, o
         <time className="property-value" dateTime={note.updatedAt}>
           {formatDate(note.updatedAt)}
         </time>
+        <span className={`save-status is-${status}`} aria-live="polite">
+          <span className="save-dot" aria-hidden="true" />
+          {status === 'invalid' ? 'Title required' : STATUS_LABEL[status]}
+        </span>
       </Property>
     </dl>
   )

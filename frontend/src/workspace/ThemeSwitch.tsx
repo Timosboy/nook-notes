@@ -1,15 +1,18 @@
 import { useId, type KeyboardEvent } from 'react'
 import { BookOpenText, Moon, Sun } from '@phosphor-icons/react'
 import { AnimatePresence, motion } from 'motion/react'
-import { ease, spring } from '../lib/motion'
+import { ease } from '../lib/motion'
 import { useTheme, type Theme } from '../lib/useTheme'
 import './theme.css'
 
-const options: { theme: Theme; label: string; Icon: typeof Sun }[] = [
-  { theme: 'light', label: 'Light', Icon: Sun },
-  { theme: 'dark', label: 'Night', Icon: Moon },
-  { theme: 'reading', label: 'Reading', Icon: BookOpenText },
+const options: { theme: Theme; label: string; Icon: typeof Sun; turn: number }[] = [
+  { theme: 'light', label: 'Light', Icon: Sun, turn: 90 },
+  { theme: 'dark', label: 'Night', Icon: Moon, turn: -16 },
+  { theme: 'reading', label: 'Reading', Icon: BookOpenText, turn: 0 },
 ]
+
+const THUMB_SPRING = { type: 'spring', stiffness: 420, damping: 24, mass: 0.9 } as const
+const ICON_SPRING = { type: 'spring', stiffness: 300, damping: 18 } as const
 
 export function ThemeSwitch() {
   const { theme, setTheme } = useTheme()
@@ -27,8 +30,14 @@ export function ThemeSwitch() {
   }
 
   return (
-    <div className="theme-switch" role="radiogroup" aria-label="Theme" onKeyDown={handleKeyDown}>
-      {options.map(({ theme: optionTheme, label, Icon }) => {
+    <div
+      className="theme-switch"
+      role="radiogroup"
+      aria-label="Theme"
+      data-theme-selected={theme}
+      onKeyDown={handleKeyDown}
+    >
+      {options.map(({ theme: optionTheme, label, Icon, turn }) => {
         const selected = theme === optionTheme
 
         return (
@@ -43,8 +52,14 @@ export function ThemeSwitch() {
             data-theme-option={optionTheme}
             onClick={() => setTheme(optionTheme)}
           >
-            {selected && <motion.span layoutId={thumbId} className="theme-thumb" transition={spring} />}
-            <Icon className="theme-icon" size={15} weight="bold" />
+            {selected && <motion.span layoutId={thumbId} className="theme-thumb" transition={THUMB_SPRING} />}
+            <motion.span
+              className="theme-icon"
+              animate={{ rotate: selected ? turn : 0, scale: selected ? 1.1 : 1 }}
+              transition={ICON_SPRING}
+            >
+              <Icon size={15} weight="bold" />
+            </motion.span>
           </button>
         )
       })}

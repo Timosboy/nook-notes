@@ -159,6 +159,21 @@
   text-decoration: underline;
 }
 
+.rich-editor .document-body img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 14px 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: zoom-in;
+}
+
+.rich-editor .document-body img.ProseMirror-selectednode {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
 .rich-editor .document-body p.is-editor-empty:first-child::before {
   float: left;
   height: 0;

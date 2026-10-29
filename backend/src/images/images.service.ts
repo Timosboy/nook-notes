@@ -8,6 +8,8 @@ import { detectImageType } from './image-type';
 import { ImagesRepository } from './images.repository';
 import { NoteImage } from './note-image.entity';
 
+const MAX_IMAGES_PER_NOTE = 30;
+
 export type NoteImageMetadata = Pick<
   NoteImage,
   'id' | 'filename' | 'mimeType' | 'size' | 'createdAt'
@@ -40,8 +42,10 @@ export class ImagesService {
 
     const count = await this.imagesRepository.countByNoteId(noteId);
 
-    if (count >= 10) {
-      throw new BadRequestException('A note can have up to 10 images');
+    if (count >= MAX_IMAGES_PER_NOTE) {
+      throw new BadRequestException(
+        `A note can have up to ${MAX_IMAGES_PER_NOTE} images`,
+      );
     }
 
     const image = await this.imagesRepository.create({

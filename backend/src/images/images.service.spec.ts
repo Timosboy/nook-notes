@@ -101,9 +101,9 @@ describe('ImagesService', () => {
     expect(imagesRepository.create).not.toHaveBeenCalled();
   });
 
-  it('rejects uploads when the note already has 10 images', async () => {
+  it('rejects uploads when the note already has 30 images', async () => {
     notesService.findOne.mockResolvedValue({ id: 'note-id' });
-    imagesRepository.countByNoteId.mockResolvedValue(10);
+    imagesRepository.countByNoteId.mockResolvedValue(30);
 
     await expect(
       service.upload('note-id', {
@@ -111,7 +111,7 @@ describe('ImagesService', () => {
         size: 3,
         buffer: Buffer.from([0xff, 0xd8, 0xff]),
       } as Express.Multer.File),
-    ).rejects.toThrow('A note can have up to 10 images');
+    ).rejects.toThrow('A note can have up to 30 images');
     expect(imagesRepository.create).not.toHaveBeenCalled();
   });
 

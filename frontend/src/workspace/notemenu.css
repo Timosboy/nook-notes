@@ -87,10 +87,6 @@
   background: var(--border);
 }
 
-.note-row-item:has(.note-row.has-images) .note-menu-trigger {
-  right: 80px;
-}
-
 @media (hover: none) {
   .note-menu-trigger {
     top: 14px;
@@ -98,10 +94,6 @@
     width: 32px;
     height: 32px;
     opacity: 1;
-  }
-
-  .note-row-item:has(.note-row.has-images) .note-menu-trigger {
-    right: 80px;
   }
 
   .note-row-title {
