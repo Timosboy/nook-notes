@@ -1,5 +1,8 @@
 import { useRef, useState } from 'react'
+import { X } from '@phosphor-icons/react'
 import { categoriesApi } from '../categories/api'
+import { CategoryChip } from '../categories/CategoryChip'
+import { CategoryNav } from '../categories/CategoryNav'
 import { nextColor, type Category } from '../categories/types'
 import { useCategories } from '../categories/useCategories'
 import { Toast } from '../components/Toast'
@@ -29,6 +32,18 @@ const VIEW_COPY: Record<View, { title: string; empty: string; emptyText: string 
   },
 }
 
+const hasCategory = (note: Note, id: string) => note.categories.some((category) => category.id === id)
+
+function countByCategory(notes: Note[]) {
+  const counts: Record<string, number> = {}
+
+  for (const note of notes) {
+    for (const { id } of note.categories) counts[id] = (counts[id] ?? 0) + 1
+  }
+
+  return counts
+}
+
 const matches = (note: Note, query: string) =>
   `${note.title}\n${note.content}`.toLowerCase().includes(query.trim().toLowerCase())
 
@@ -42,15 +57,31 @@ export function Workspace() {
   const [freshId, setFreshId] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
   const [query, setQuery] = useState('')
+  const [categoryId, setCategoryId] = useState<string | null>(null)
   const searchRef = useRef<HTMLInputElement>(null)
   const { toast, show: showToast, dismiss: dismissToast } = useToast()
 
   const current = view === 'active' ? active : archived
   const copy = VIEW_COPY[view]
-  const visibleNotes = query.trim()
-    ? current.notes.filter((note) => matches(note, query))
-    : current.notes
+  const filter = categories.categories.find(({ id }) => id === categoryId) ?? null
+  const visibleNotes = current.notes.filter(
+    (note) => (!filter || hasCategory(note, filter.id)) && (!query.trim() || matches(note, query)),
+  )
+  const categoryCounts = countByCategory(current.notes)
   const selected = current.notes.find((note) => note.id === selectedId) ?? null
+
+  function changeFilter(id: string | null) {
+    setCategoryId(id)
+    setSelectedId(null)
+  }
+
+  async function deleteCategory(category: Category) {
+    await categoriesApi.remove(category.id)
+    categories.drop(category.id)
+    if (categoryId === category.id) setCategoryId(null)
+    active.reload()
+    archived.reload()
+  }
 
   function changeView(next: View) {
     setView(next)
@@ -85,7 +116,7 @@ export function Workspace() {
   }
 
   async function toggleCategory(note: Note, category: Category) {
-    const tagged = note.categories.some(({ id }) => id === category.id)
+    const tagged = hasCategory(note, category.id)
 
     try {
       const updated = tagged
@@ -153,7 +184,11 @@ export function Workspace() {
     }
 
     if (visibleNotes.length === 0) {
-      return <NotesEmpty title="No matches" description={`Nothing found for "${query.trim()}".`} />
+      const description = query.trim()
+        ? `Nothing found for "${query.trim()}".`
+        : `No notes in ${filter?.name} here yet.`
+
+      return <NotesEmpty title="No matches" description={description} />
     }
   }
 
@@ -165,7 +200,15 @@ export function Workspace() {
         creating={creating}
         onViewChange={changeView}
         onCreate={createNote}
-      />
+      >
+        <CategoryNav
+          categories={categories.categories}
+          counts={categoryCounts}
+          activeId={categoryId}
+          onSelect={changeFilter}
+          onDelete={deleteCategory}
+        />
+      </Sidebar>
 
       <NoteListPane
         title={copy.title}
@@ -175,6 +218,19 @@ export function Workspace() {
         searchRef={searchRef}
         onQueryChange={setQuery}
         onSelect={setSelectedId}
+        filter={
+          filter && (
+            <CategoryChip category={filter}>
+              <button
+                className="chip-remove"
+                aria-label="Clear category filter"
+                onClick={() => changeFilter(null)}
+              >
+                <X size={10} weight="bold" />
+              </button>
+            </CategoryChip>
+          )
+        }
       >
         {renderList()}
       </NoteListPane>

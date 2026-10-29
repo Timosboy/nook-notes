@@ -11,6 +11,7 @@ type Props = {
   searchRef: Ref<HTMLInputElement>
   onQueryChange: (query: string) => void
   onSelect: (id: string) => void
+  filter?: ReactNode
   children?: ReactNode
 }
 
@@ -22,6 +23,7 @@ export function NoteListPane({
   searchRef,
   onQueryChange,
   onSelect,
+  filter,
   children,
 }: Props) {
   return (
@@ -33,6 +35,7 @@ export function NoteListPane({
 
       <div className="list-search">
         <SearchField ref={searchRef} value={query} onChange={onQueryChange} />
+        {filter && <div className="list-filter">Filtered by {filter}</div>}
       </div>
 
       {children ?? (
