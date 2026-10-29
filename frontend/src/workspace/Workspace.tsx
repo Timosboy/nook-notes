@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { X } from '@phosphor-icons/react'
 import { categoriesApi } from '../categories/api'
 import { CategoryChip } from '../categories/CategoryChip'
@@ -9,6 +9,7 @@ import type { CategoryPatch } from '../categories/api'
 import { useCategories } from '../categories/useCategories'
 import { Toast } from '../components/Toast'
 import { useShortcut } from '../lib/useShortcut'
+import { usePanels } from '../lib/usePanels'
 import { useToast } from '../lib/useToast'
 import { checkImage } from '../lib/imageRules'
 import { notesApi } from '../notes/api'
@@ -18,6 +19,7 @@ import { useNotes } from '../notes/useNotes'
 import { Home } from './Home'
 import { NoteEditor } from './NoteEditor'
 import { NoteListPane } from './NoteListPane'
+import { PanelToggles } from './PanelToggles'
 import { Sidebar, type View } from './Sidebar'
 import './workspace.css'
 
@@ -62,8 +64,17 @@ export function Workspace() {
   const [actionError, setActionError] = useState<string | null>(null)
   const [query, setQuery] = useState('')
   const [categoryId, setCategoryId] = useState<string | null>(null)
+  const [desktop, setDesktop] = useState(() => window.innerWidth > 820)
+  const { sidebar, list, toggleSidebar, toggleList, toggleFocus, openList } = usePanels()
   const searchRef = useRef<HTMLInputElement>(null)
   const { toast, show: showToast, dismiss: dismissToast } = useToast()
+
+  useEffect(() => {
+    const media = window.matchMedia('(min-width: 821px)')
+    const updateDesktop = () => setDesktop(media.matches)
+    media.addEventListener('change', updateDesktop)
+    return () => media.removeEventListener('change', updateDesktop)
+  }, [])
 
   const current = view === 'active' ? active : archived
   const copy = VIEW_COPY[view]
@@ -244,7 +255,22 @@ export function Workspace() {
   }
 
   useShortcut('n', () => void createNote())
-  useShortcut('/', () => searchRef.current?.focus())
+  useShortcut('[', toggleSidebar)
+  useShortcut(']', toggleList)
+  useShortcut('\\', toggleFocus)
+  useShortcut('/', () => {
+    openList()
+    window.requestAnimationFrame(() => searchRef.current?.focus())
+  })
+
+  const panelToggles = (
+    <PanelToggles
+      sidebar={sidebar}
+      list={list}
+      onToggleSidebar={toggleSidebar}
+      onToggleList={toggleList}
+    />
+  )
 
   function renderList() {
     if (current.error) return <NotesError message={current.error} onRetry={current.reload} />
@@ -264,8 +290,14 @@ export function Workspace() {
   }
 
   return (
-    <div className="workspace" data-view={selected ? 'editor' : 'list'}>
+    <div
+      className="workspace"
+      data-view={selected ? 'editor' : 'list'}
+      data-sidebar={sidebar ? 'open' : 'closed'}
+      data-list={list ? 'open' : 'closed'}
+    >
       <Sidebar
+        inert={desktop && !sidebar}
         view={view}
         counts={{ active: active.notes.length, archived: archived.notes.length }}
         creating={creating}
@@ -284,6 +316,7 @@ export function Workspace() {
       </Sidebar>
 
       <NoteListPane
+        inert={desktop && !list}
         title={copy.title}
         listKey={`${view}:${categoryId ?? 'all'}`}
         notes={visibleNotes}
@@ -314,6 +347,7 @@ export function Workspace() {
         {selected ? (
           <NoteEditor
             key={selected.id}
+            leading={panelToggles}
             note={selected}
             section={copy.title}
             fresh={selected.id === freshId}
@@ -330,6 +364,7 @@ export function Workspace() {
           />
         ) : (
           <Home
+            leading={panelToggles}
             notes={active.notes}
             archivedCount={archived.notes.length}
             onOpen={openNote}

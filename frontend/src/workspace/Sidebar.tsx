@@ -16,45 +16,48 @@ type Props = {
   onViewChange: (view: View) => void
   onCreate: () => void
   children?: ReactNode
+  inert?: boolean
 }
 
-export function Sidebar({ view, counts, creating, onViewChange, onCreate, children }: Props) {
+export function Sidebar({ view, counts, creating, onViewChange, onCreate, children, inert }: Props) {
   return (
-    <aside className="sidebar">
-      <div className="sidebar-top">
-        <div className="sidebar-brand">
-          <span className="brand-mark" aria-hidden="true">
-            <NotePencil size={14} weight="fill" />
-          </span>
-          Notes
+    <aside className="sidebar" inert={inert}>
+      <div className="sidebar-content">
+        <div className="sidebar-top">
+          <div className="sidebar-brand">
+            <span className="brand-mark" aria-hidden="true">
+              <NotePencil size={14} weight="fill" />
+            </span>
+            Notes
+          </div>
+
+          <ThemeCycleButton />
+          <button className="button button-primary sidebar-new" onClick={onCreate} disabled={creating}>
+            <Plus size={16} weight="bold" />
+            New note
+          </button>
         </div>
 
-        <ThemeCycleButton />
-        <button className="button button-primary sidebar-new" onClick={onCreate} disabled={creating}>
-          <Plus size={16} weight="bold" />
-          New note
-        </button>
-      </div>
+        <nav className="sidebar-nav" aria-label="Views">
+          {VIEWS.map(({ id, label, icon: ViewIcon }) => (
+            <button
+              key={id}
+              className={`nav-item${id === view ? ' is-active' : ''}`}
+              aria-current={id === view ? 'page' : undefined}
+              onClick={() => onViewChange(id)}
+            >
+              <ViewIcon size={16} weight="bold" />
+              <span>{label}</span>
+              <span className="nav-count">{counts[id]}</span>
+            </button>
+          ))}
+        </nav>
 
-      <nav className="sidebar-nav" aria-label="Views">
-        {VIEWS.map(({ id, label, icon: ViewIcon }) => (
-          <button
-            key={id}
-            className={`nav-item${id === view ? ' is-active' : ''}`}
-            aria-current={id === view ? 'page' : undefined}
-            onClick={() => onViewChange(id)}
-          >
-            <ViewIcon size={16} weight="bold" />
-            <span>{label}</span>
-            <span className="nav-count">{counts[id]}</span>
-          </button>
-        ))}
-      </nav>
+        {children}
 
-      {children}
-
-      <div className="sidebar-footer">
-        <ThemeSwitch />
+        <div className="sidebar-footer">
+          <ThemeSwitch />
+        </div>
       </div>
     </aside>
   )
