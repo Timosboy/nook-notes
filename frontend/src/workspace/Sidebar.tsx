@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Archive, Notepad, Plus, type Icon } from '@phosphor-icons/react'
+import { Archive, Notepad, NotePencil, Plus, type Icon } from '@phosphor-icons/react'
 
 export type View = 'active' | 'archived'
 
@@ -22,7 +22,9 @@ export function Sidebar({ view, counts, creating, onViewChange, onCreate, childr
     <aside className="sidebar">
       <div className="sidebar-top">
         <div className="sidebar-brand">
-          <span className="brand-mark" aria-hidden="true" />
+          <span className="brand-mark" aria-hidden="true">
+            <NotePencil size={14} weight="fill" />
+          </span>
           Notes
         </div>
 

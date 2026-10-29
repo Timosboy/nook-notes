@@ -26,17 +26,20 @@
   align-items: center;
   gap: 10px;
   padding: 4px 8px;
-  font-family: var(--font-serif);
-  font-size: 24px;
+  font-weight: 600;
+  font-size: 14px;
   line-height: 1;
   color: var(--text-strong);
 }
 
 .brand-mark {
-  width: 14px;
-  height: 18px;
-  border-radius: 3px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
   background: var(--text-strong);
+  color: var(--canvas);
 }
 
 .sidebar-new {
@@ -102,10 +105,9 @@
 }
 
 .list-title {
-  font-family: var(--font-serif);
-  font-weight: 400;
-  font-size: 28px;
-  line-height: 1.1;
+  font-weight: 700;
+  font-size: var(--title-sm);
+  line-height: 1.2;
   letter-spacing: -0.02em;
   color: var(--text-strong);
 }
@@ -259,10 +261,10 @@
 
 .document-title {
   overflow: hidden;
-  font-family: var(--font-serif);
-  font-size: 44px;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
+  font-weight: 700;
+  font-size: var(--title-lg);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
   color: var(--text-strong);
 }
 
@@ -305,10 +307,9 @@
 }
 
 .state-title {
-  font-family: var(--font-serif);
-  font-weight: 400;
-  font-size: 22px;
-  line-height: 1.2;
+  font-weight: 600;
+  font-size: var(--text-base);
+  line-height: 1.3;
   color: var(--text-strong);
 }
 
@@ -423,7 +424,6 @@
 
   .sidebar-brand {
     padding: 0;
-    font-size: 22px;
   }
 
   .sidebar-nav {
@@ -469,7 +469,7 @@
   }
 
   .document-title {
-    font-size: 34px;
+    font-size: 32px;
   }
 }
 
