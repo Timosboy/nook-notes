@@ -11,7 +11,7 @@ import './workspace.css'
 const NEW_NOTE_TITLE = 'Untitled'
 
 export function Workspace() {
-  const { notes, loading, error, reload, upsert } = useNotes(false)
+  const { notes, loading, error, reload, upsert, drop } = useNotes(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
   const [freshId, setFreshId] = useState<string | null>(null)
@@ -37,6 +37,12 @@ export function Workspace() {
 
   async function saveNote(id: string, input: NoteInput) {
     upsert(await notesApi.update(id, input))
+  }
+
+  async function deleteNote(id: string) {
+    await notesApi.remove(id)
+    drop(id)
+    setSelectedId(null)
   }
 
   function renderList() {
@@ -68,6 +74,7 @@ export function Workspace() {
             note={selected}
             fresh={selected.id === freshId}
             onSave={(input) => saveNote(selected.id, input)}
+            onDelete={() => deleteNote(selected.id)}
           />
         ) : (
           <div className="editor-placeholder">

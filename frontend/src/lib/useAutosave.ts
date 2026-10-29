@@ -48,7 +48,9 @@ export function useAutosave<T>(
 
   useEffect(
     () => () => {
-      if (pendingKey.current) void saveRef.current(JSON.parse(pendingKey.current) as T)
+      if (pendingKey.current) {
+        saveRef.current(JSON.parse(pendingKey.current) as T).catch(() => undefined)
+      }
     },
     [],
   )

@@ -327,3 +327,9 @@
     opacity: 0.5;
   }
 }
+
+.document-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

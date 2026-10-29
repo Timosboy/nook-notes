@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { Trash } from '@phosphor-icons/react'
+import { ConfirmDialog } from '../components/ConfirmDialog'
 import { formatDate } from '../lib/format'
 import { useAutosave, type SaveStatus } from '../lib/useAutosave'
 import type { Note, NoteInput } from '../notes/types'
@@ -15,11 +17,13 @@ type Props = {
   note: Note
   fresh: boolean
   onSave: (input: NoteInput) => Promise<void>
+  onDelete: () => Promise<void>
 }
 
-export function NoteEditor({ note, fresh, onSave }: Props) {
+export function NoteEditor({ note, fresh, onSave, onDelete }: Props) {
   const [title, setTitle] = useState(note.title)
   const [content, setContent] = useState(note.content)
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
 
   const hasTitle = title.trim().length > 0
   const status = useAutosave({ title: title.trim(), content }, onSave, { enabled: hasTitle })
@@ -30,10 +34,29 @@ export function NoteEditor({ note, fresh, onSave }: Props) {
         <time className="document-date" dateTime={note.updatedAt}>
           {formatDate(note.updatedAt)}
         </time>
-        <span className={`save-status is-${hasTitle ? status : 'error'}`} aria-live="polite">
-          {hasTitle ? STATUS_LABEL[status] : 'Title required'}
-        </span>
+        <div className="document-tools">
+          <span className={`save-status is-${hasTitle ? status : 'error'}`} aria-live="polite">
+            {hasTitle ? STATUS_LABEL[status] : 'Title required'}
+          </span>
+          <button
+            className="icon-button icon-button-danger"
+            aria-label="Delete note"
+            title="Delete note"
+            onClick={() => setConfirmingDelete(true)}
+          >
+            <Trash size={16} weight="bold" />
+          </button>
+        </div>
       </div>
+
+      <ConfirmDialog
+        open={confirmingDelete}
+        title="Delete this note?"
+        description={`"${note.title}" will be deleted for good. This can't be undone.`}
+        confirmLabel="Delete note"
+        onConfirm={onDelete}
+        onClose={() => setConfirmingDelete(false)}
+      />
 
       <textarea
         className="document-title"
