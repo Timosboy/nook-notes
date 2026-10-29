@@ -44,6 +44,16 @@ export class NotesController {
     return this.notesService.update(id, dto);
   }
 
+  @Patch(':id/archive')
+  archive(@Param('id', ParseUUIDPipe) id: string): Promise<Note> {
+    return this.notesService.archive(id);
+  }
+
+  @Patch(':id/unarchive')
+  unarchive(@Param('id', ParseUUIDPipe) id: string): Promise<Note> {
+    return this.notesService.unarchive(id);
+  }
+
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {

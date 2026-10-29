@@ -36,6 +36,21 @@ export class NotesService {
     return this.notesRepository.save(note);
   }
 
+  archive(id: string): Promise<Note> {
+    return this.setArchived(id, true);
+  }
+
+  unarchive(id: string): Promise<Note> {
+    return this.setArchived(id, false);
+  }
+
+  private async setArchived(id: string, archived: boolean): Promise<Note> {
+    const note = await this.findOne(id);
+    note.archived = archived;
+
+    return this.notesRepository.save(note);
+  }
+
   async remove(id: string): Promise<void> {
     const note = await this.findOne(id);
 

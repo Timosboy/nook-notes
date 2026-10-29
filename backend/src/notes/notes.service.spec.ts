@@ -115,6 +115,45 @@ describe('NotesService', () => {
     expect(notesRepository.save).not.toHaveBeenCalled();
   });
 
+  it('archives an existing note', async () => {
+    const note = {
+      id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+      title: 'Note',
+      content: '',
+      archived: false,
+    };
+    notesRepository.findById.mockResolvedValue(note);
+    notesRepository.save.mockResolvedValue(note);
+
+    await expect(service.archive(note.id)).resolves.toBe(note);
+    expect(note.archived).toBe(true);
+    expect(notesRepository.save).toHaveBeenCalledWith(note);
+  });
+
+  it('unarchives an existing note', async () => {
+    const note = {
+      id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+      title: 'Note',
+      content: '',
+      archived: true,
+    };
+    notesRepository.findById.mockResolvedValue(note);
+    notesRepository.save.mockResolvedValue(note);
+
+    await expect(service.unarchive(note.id)).resolves.toBe(note);
+    expect(note.archived).toBe(false);
+    expect(notesRepository.save).toHaveBeenCalledWith(note);
+  });
+
+  it('throws NotFoundException when archiving a missing note', async () => {
+    notesRepository.findById.mockResolvedValue(null);
+
+    await expect(
+      service.archive('3fa85f64-5717-4562-b3fc-2c963f66afa6'),
+    ).rejects.toThrow(NotFoundException);
+    expect(notesRepository.save).not.toHaveBeenCalled();
+  });
+
   it('removes an existing note', async () => {
     const note = {
       id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
