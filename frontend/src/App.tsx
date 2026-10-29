@@ -1,5 +1,10 @@
+import { MotionConfig } from 'motion/react'
 import { Workspace } from './workspace/Workspace'
 
 export default function App() {
-  return <Workspace />
+  return (
+    <MotionConfig reducedMotion="user">
+      <Workspace />
+    </MotionConfig>
+  )
 }

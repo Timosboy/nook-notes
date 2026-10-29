@@ -119,6 +119,7 @@
 }
 
 .note-rows {
+  position: relative;
   flex: 1;
   margin: 0;
   padding: 0 8px 16px;
@@ -187,7 +188,7 @@
   margin-bottom: 4px;
   border-radius: var(--radius-sm);
   background: var(--surface-muted);
-  animation: pulse 1.4s ease-in-out infinite;
+  animation: pulse 1.4s var(--ease-in-out) infinite;
 }
 
 /* Editor */
@@ -419,6 +420,14 @@
     display: none;
   }
 
+  .workspace[data-view='editor'] .editor-pane {
+    animation: slide-in 260ms var(--ease-out);
+  }
+
+  .workspace[data-view='list'] .list-pane {
+    animation: slide-back 260ms var(--ease-out);
+  }
+
   .back-button {
     display: inline-grid;
     margin-left: -8px;
@@ -639,7 +648,7 @@
 
 .save-status.is-saving .save-dot {
   background: var(--yellow-text);
-  animation: pulse 1s ease-in-out infinite;
+  animation: pulse 1s var(--ease-in-out) infinite;
 }
 
 .save-status.is-error .save-dot,
@@ -820,19 +829,14 @@
 
 /* Motion */
 
-.note-row-item {
-  animation: rise 240ms ease-out both;
-  animation-delay: calc(var(--order) * 30ms);
-}
-
 .document,
 .home {
-  animation: fade-in 220ms ease-out;
+  animation: fade-in 220ms var(--ease-out);
 }
 
 .document-icon,
 .recent-card {
-  animation: rise 280ms ease-out both;
+  animation: rise 280ms var(--ease-out) both;
 }
 
 .recent-grid li:nth-child(2) .recent-card {
@@ -841,10 +845,6 @@
 
 .recent-grid li:nth-child(3) .recent-card {
   animation-delay: 80ms;
-}
-
-.properties .chip {
-  animation: pop 160ms ease-out;
 }
 
 .nav-item {
