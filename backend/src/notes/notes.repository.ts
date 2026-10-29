@@ -12,8 +12,11 @@ export class NotesRepository {
     private readonly notes: Repository<Note>,
   ) {}
 
-  findAll(): Promise<Note[]> {
-    return this.notes.find({ order: { updatedAt: 'DESC' } });
+  findAll(archived: boolean): Promise<Note[]> {
+    return this.notes.find({
+      where: { archived },
+      order: { updatedAt: 'DESC' },
+    });
   }
 
   findById(id: string): Promise<Note | null> {
