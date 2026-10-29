@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
-import { Archive, Notepad, NotePencil, Plus, type Icon } from '@phosphor-icons/react'
+import { Archive, Notepad, Plus, type Icon } from '@phosphor-icons/react'
+import { AppLogo } from './AppLogo'
 import { BrandCredit } from './BrandCredit'
 import { ThemeCycleButton, ThemeSwitch } from './ThemeSwitch'
 
@@ -25,12 +26,7 @@ export function Sidebar({ view, counts, creating, onViewChange, onCreate, childr
     <aside className="sidebar" inert={inert}>
       <div className="sidebar-content">
         <div className="sidebar-top">
-          <div className="sidebar-brand">
-            <span className="brand-mark" aria-hidden="true">
-              <NotePencil size={14} weight="fill" />
-            </span>
-            Notes
-          </div>
+          <AppLogo />
 
           <ThemeCycleButton />
           <button className="button button-primary sidebar-new" onClick={onCreate} disabled={creating}>

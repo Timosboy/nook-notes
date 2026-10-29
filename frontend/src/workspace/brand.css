@@ -3,7 +3,7 @@
   display: flex;
   align-items: center;
   flex: none;
-  gap: 8px;
+  gap: 7px;
 }
 
 :root[data-theme='dark'] .brand-credit {
@@ -26,14 +26,94 @@
 
 .brand-credit-label {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 9.5px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--text-muted);
 }
 
 .brand-credit-name {
-  font-size: var(--text-xs);
+  font-size: 11.5px;
   font-weight: 500;
   color: var(--text);
+}
+
+.app-logo {
+  --accent: #1d4a3a;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 8px;
+  color: var(--text-strong);
+  cursor: default;
+}
+
+:root[data-theme='dark'] .app-logo {
+  --accent: #7cc9a4;
+}
+
+.app-logo-tile {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--text-strong);
+  color: var(--canvas);
+  transition: transform 220ms var(--ease-out);
+}
+
+.app-logo:hover .app-logo-tile {
+  transform: rotate(-6deg) scale(1.06);
+}
+
+.app-logo-fold {
+  transition: transform 220ms var(--ease-out);
+}
+
+.app-logo:hover .app-logo-fold {
+  transform: translate(1px, -1px);
+}
+
+.app-logo:hover .app-logo-line {
+  stroke-dasharray: 9;
+  animation: app-logo-write 520ms var(--ease-out);
+}
+
+.app-logo-word {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 1px;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.app-logo-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 9999px;
+  background: var(--accent);
+}
+
+.app-logo:hover .app-logo-dot {
+  animation: app-logo-hop 480ms var(--ease-out);
+}
+
+@keyframes app-logo-write {
+  from {
+    stroke-dashoffset: 9;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes app-logo-hop {
+  40% {
+    transform: translateY(-5px);
+  }
 }
