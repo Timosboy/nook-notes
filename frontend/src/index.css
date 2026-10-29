@@ -212,3 +212,12 @@ textarea {
     animation: none !important;
   }
 }
+
+.button-danger {
+  background: var(--red-bg);
+  color: var(--red-text);
+}
+
+.button-danger:hover:not(:disabled) {
+  filter: brightness(0.96);
+}

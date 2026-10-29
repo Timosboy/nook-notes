@@ -134,3 +134,39 @@ kbd {
     display: none;
   }
 }
+
+.note-actions {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 150ms;
+}
+
+.note-card:hover .note-actions,
+.note-card:focus-within .note-actions {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .note-actions {
+    opacity: 1;
+  }
+}
+
+.note-confirm {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.note-confirm span {
+  margin-right: 4px;
+}
+
+.note-confirm .button {
+  height: 28px;
+  padding: 0 10px;
+  font-size: 13px;
+}

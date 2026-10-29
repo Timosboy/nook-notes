@@ -16,6 +16,16 @@ export default function App() {
     reload()
   }
 
+  async function updateNote(id: string, input: NoteInput) {
+    await notesApi.update(id, input)
+    reload()
+  }
+
+  async function deleteNote(id: string) {
+    await notesApi.remove(id)
+    reload()
+  }
+
   return (
     <div className="page">
       <header className="page-header">
@@ -36,7 +46,7 @@ export default function App() {
           />
         </section>
       )}
-      <NoteList notes={notes} />
+      <NoteList notes={notes} onUpdate={updateNote} onDelete={deleteNote} />
     </div>
   )
 }
