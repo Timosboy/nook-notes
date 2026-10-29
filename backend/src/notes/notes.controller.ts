@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Put,
   Patch,
   ParseUUIDPipe,
   Post,
@@ -23,7 +24,7 @@ export class NotesController {
 
   @Get()
   findAll(@Query() query: ListNotesQuery): Promise<Note[]> {
-    return this.notesService.findAll(query.archived);
+    return this.notesService.findAll(query.archived, query.categoryId);
   }
 
   @Get(':id')
@@ -52,6 +53,22 @@ export class NotesController {
   @Patch(':id/unarchive')
   unarchive(@Param('id', ParseUUIDPipe) id: string): Promise<Note> {
     return this.notesService.unarchive(id);
+  }
+
+  @Put(':id/categories/:categoryId')
+  addCategory(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('categoryId', ParseUUIDPipe) categoryId: string,
+  ): Promise<Note> {
+    return this.notesService.addCategory(id, categoryId);
+  }
+
+  @Delete(':id/categories/:categoryId')
+  removeCategory(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('categoryId', ParseUUIDPipe) categoryId: string,
+  ): Promise<Note> {
+    return this.notesService.removeCategory(id, categoryId);
   }
 
   @Delete(':id')

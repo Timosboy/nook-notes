@@ -12,19 +12,39 @@ export class NotesRepository {
     private readonly notes: Repository<Note>,
   ) {}
 
-  findAll(archived: boolean): Promise<Note[]> {
-    return this.notes.find({
-      where: { archived },
-      order: { updatedAt: 'DESC' },
-    });
+  findAll(archived: boolean, categoryId?: string): Promise<Note[]> {
+    const query = this.notes
+      .createQueryBuilder('note')
+      .leftJoinAndSelect('note.categories', 'category')
+      .where('note.archived = :archived', { archived })
+      .orderBy('note.updatedAt', 'DESC')
+      .addOrderBy('category.name', 'ASC');
+
+    if (categoryId) {
+      query.andWhere(
+        `EXISTS (
+          SELECT 1
+          FROM "note_categories" "noteCategory"
+          WHERE "noteCategory"."noteId" = note.id
+            AND "noteCategory"."categoryId" = :categoryId
+        )`,
+        { categoryId },
+      );
+    }
+
+    return query.getMany();
   }
 
   findById(id: string): Promise<Note | null> {
-    return this.notes.findOneBy({ id });
+    return this.notes.findOne({
+      where: { id },
+      relations: { categories: true },
+      order: { categories: { name: 'ASC' } },
+    });
   }
 
   create(note: NewNote): Promise<Note> {
-    return this.notes.save(this.notes.create(note));
+    return this.notes.save(this.notes.create({ ...note, categories: [] }));
   }
 
   save(note: Note): Promise<Note> {
