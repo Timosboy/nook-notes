@@ -15,6 +15,12 @@
   border-right: 1px solid var(--border);
 }
 
+.sidebar-top {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .sidebar-brand {
   display: flex;
   align-items: center;
@@ -396,12 +402,16 @@
   }
 
   .sidebar {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
+    gap: 10px;
     padding: 10px 16px;
     border-right: 0;
     border-bottom: 1px solid var(--border);
+  }
+
+  .sidebar-top {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
   }
 
   .sidebar-brand {
@@ -410,6 +420,18 @@
   }
 
   .sidebar-nav {
+    flex-direction: row;
+    gap: 6px;
+  }
+
+  .nav-item {
+    width: auto;
+    height: 30px;
+    padding: 0 12px;
+    border-radius: 9999px;
+  }
+
+  .workspace[data-view='editor'] .sidebar-nav {
     display: none;
   }
 
@@ -449,12 +471,6 @@
   .shortcuts {
     display: none;
   }
-}
-
-.sidebar-top {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
 }
 
 .badge {
