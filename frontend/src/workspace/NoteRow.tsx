@@ -6,6 +6,7 @@ import { ease, spring } from '../lib/motion'
 import { notesApi } from '../notes/api'
 import type { Note } from '../notes/types'
 import { markdownToPlain } from '../lib/plainText'
+import { NoteMenu } from './NoteMenu'
 
 const MAX_CHIPS = 3
 const MAX_STAGGERED = 8
@@ -15,9 +16,12 @@ type Props = {
   order: number
   selected: boolean
   onSelect: () => void
+  onTogglePin: (note: Note) => void
+  onToggleArchive: (note: Note) => void
+  onDelete: (note: Note) => void
 }
 
-export function NoteRow({ note, order, selected, onSelect }: Props) {
+export function NoteRow({ note, order, selected, onSelect, onTogglePin, onToggleArchive, onDelete }: Props) {
   const shown = note.categories.slice(0, MAX_CHIPS)
   const hidden = note.categories.length - shown.length
 
@@ -32,6 +36,7 @@ export function NoteRow({ note, order, selected, onSelect }: Props) {
       }}
       exit={{ opacity: 0, x: -12, transition: { duration: 0.16, ease } }}
       transition={{ layout: spring }}
+      className="note-row-item"
     >
       <button
         className={`note-row${selected ? ' is-selected' : ''}${note.images.length ? ' has-images' : ''}`}
@@ -65,6 +70,12 @@ export function NoteRow({ note, order, selected, onSelect }: Props) {
           />
         )}
       </button>
+      <NoteMenu
+        note={note}
+        onTogglePin={() => onTogglePin(note)}
+        onToggleArchive={() => onToggleArchive(note)}
+        onDelete={() => onDelete(note)}
+      />
     </motion.li>
   )
 }

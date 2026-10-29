@@ -8,6 +8,7 @@ import type { Category } from '../categories/types'
 import type { CategoryPatch } from '../categories/api'
 import { useCategories } from '../categories/useCategories'
 import { Toast } from '../components/Toast'
+import { ConfirmDialog } from '../components/ConfirmDialog'
 import { useShortcut } from '../lib/useShortcut'
 import { usePanels } from '../lib/usePanels'
 import { useToast } from '../lib/useToast'
@@ -64,6 +65,7 @@ export function Workspace() {
   const [creating, setCreating] = useState(false)
   const [freshId, setFreshId] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState<Note | null>(null)
   const [query, setQuery] = useState('')
   const [categoryId, setCategoryId] = useState<string | null>(null)
   const [desktop, setDesktop] = useState(() => window.innerWidth > 820)
@@ -225,7 +227,7 @@ export function Workspace() {
 
     try {
       const moved = await moveNote(note)
-      setSelectedId(null)
+      setSelectedId((selectedNoteId) => selectedNoteId === note.id ? null : selectedNoteId)
       showToast(moved.archived ? 'Note archived' : 'Note restored', {
         label: 'Undo',
         run: () => void undoMove(moved),
@@ -261,8 +263,9 @@ export function Workspace() {
 
   async function deleteNote(id: string) {
     await notesApi.remove(id)
-    current.drop(id)
-    setSelectedId(null)
+    active.drop(id)
+    archived.drop(id)
+    setSelectedId((selectedNoteId) => selectedNoteId === id ? null : selectedNoteId)
   }
 
   useShortcut('n', () => void createNote())
@@ -337,6 +340,9 @@ export function Workspace() {
           searchRef={searchRef}
           onQueryChange={setQuery}
           onSelect={setSelectedId}
+          onTogglePin={(note) => void togglePin(note)}
+          onToggleArchive={(note) => void toggleArchive(note)}
+          onDelete={setDeleting}
           filter={
             filter && (
               <CategoryChip category={filter}>
@@ -389,6 +395,18 @@ export function Workspace() {
           />
         )}
       </main>
+
+      <ConfirmDialog
+        open={deleting !== null}
+        title="Delete this note?"
+        description={`"${deleting?.title ?? ''}" will be deleted for good. This can't be undone.`}
+        confirmLabel="Delete note"
+        onConfirm={async () => {
+          if (deleting) await deleteNote(deleting.id)
+          setDeleting(null)
+        }}
+        onClose={() => setDeleting(null)}
+      />
 
       <Toast toast={toast} onDismiss={dismissToast} />
     </div>

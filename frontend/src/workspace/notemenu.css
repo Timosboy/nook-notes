@@ -1,0 +1,114 @@
+.note-row-item {
+  position: relative;
+}
+
+.note-row-title {
+  padding-right: 28px;
+}
+
+.note-menu-trigger {
+  position: absolute;
+  z-index: 1;
+  top: 16px;
+  right: 16px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-muted);
+  opacity: 0;
+  cursor: pointer;
+  transition: opacity 120ms, background-color 120ms, color 120ms;
+}
+
+.note-row-item:hover .note-menu-trigger,
+.note-row-item:focus-within .note-menu-trigger,
+.note-row-item:has(.note-menu-trigger[aria-expanded='true']) .note-menu-trigger {
+  opacity: 1;
+}
+
+.note-menu-trigger:hover,
+.note-menu-trigger:focus-visible {
+  color: var(--text-strong);
+  background: var(--surface-muted);
+}
+
+.note-menu {
+  position: fixed;
+  z-index: 1000;
+  min-width: 176px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 12px 32px color-mix(in srgb, var(--text-strong) 14%, transparent);
+}
+
+.note-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  height: 32px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.note-menu-item:hover,
+.note-menu-item:focus-visible {
+  outline: none;
+  background: var(--surface-muted);
+}
+
+.note-menu-item.is-danger {
+  color: var(--red-text);
+}
+
+.note-menu-item.is-danger:hover,
+.note-menu-item.is-danger:focus-visible {
+  background: var(--red-bg);
+}
+
+.note-menu-separator {
+  height: 1px;
+  margin: 4px 5px;
+  background: var(--border);
+}
+
+.note-row-item:has(.note-row.has-images) .note-menu-trigger {
+  right: 80px;
+}
+
+@media (hover: none) {
+  .note-menu-trigger {
+    top: 14px;
+    right: 14px;
+    width: 32px;
+    height: 32px;
+    opacity: 1;
+  }
+
+  .note-row-item:has(.note-row.has-images) .note-menu-trigger {
+    right: 80px;
+  }
+
+  .note-row-title {
+    padding-right: 38px;
+  }
+
+  .note-row-preview {
+    padding-right: 38px;
+  }
+}
