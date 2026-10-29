@@ -1,5 +1,6 @@
 import { motion } from 'motion/react'
 import { CategoryChip } from '../categories/CategoryChip'
+import { toneStyle } from '../categories/tone'
 import { timeAgo } from '../lib/format'
 import { ease, spring } from '../lib/motion'
 import { notesApi } from '../notes/api'
@@ -47,7 +48,7 @@ export function NoteRow({ note, order, selected, onSelect }: Props) {
               {shown.map((category) => (
                 <CategoryChip key={category.id} category={category} />
               ))}
-              {hidden > 0 && <span className="chip chip-gray">+{hidden}</span>}
+              {hidden > 0 && <span className="chip" style={toneStyle()}>+{hidden}</span>}
             </span>
           )}
         </span>

@@ -1,5 +1,6 @@
 import { MagnifyingGlass, NotePencil, Plus } from '@phosphor-icons/react'
 import { timeAgo } from '../lib/format'
+import { toneStyle } from '../categories/tone'
 import type { Note } from '../notes/types'
 
 const RECENT_COUNT = 3
@@ -37,7 +38,7 @@ export function Home({ notes, archivedCount, onOpen, onCreate, onSearch }: Props
             {recent.map((note) => (
               <li key={note.id}>
                 <button className="recent-card" onClick={() => onOpen(note)}>
-                  <span className={`recent-icon chip-${note.categories[0]?.color ?? 'gray'}`}>
+                  <span className="recent-icon tone-tile" style={toneStyle(note.categories[0]?.color)}>
                     <NotePencil size={16} weight="duotone" />
                   </span>
                   <span className="recent-title">{note.title}</span>
