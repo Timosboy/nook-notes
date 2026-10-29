@@ -13,6 +13,7 @@ describe('CategoriesService', () => {
     findById: jest.Mock;
     findByName: jest.Mock;
     create: jest.Mock;
+    update: jest.Mock;
     remove: jest.Mock;
   };
 
@@ -22,6 +23,7 @@ describe('CategoriesService', () => {
       findById: jest.fn(),
       findByName: jest.fn(),
       create: jest.fn(),
+      update: jest.fn(),
       remove: jest.fn(),
     };
     service = new CategoriesService(
@@ -30,7 +32,7 @@ describe('CategoriesService', () => {
   });
 
   it('lists categories', async () => {
-    const categories = [{ id: '1', name: 'Work', color: 'blue' }];
+    const categories = [{ id: '1', name: 'Work', color: '#337ea9' }];
     categoriesRepository.findAll.mockResolvedValue(categories);
 
     await expect(service.findAll()).resolves.toBe(categories);
@@ -48,16 +50,16 @@ describe('CategoriesService', () => {
   });
 
   it('creates a category when its name is available', async () => {
-    const category = { id: '1', name: 'Work', color: 'blue' };
+    const category = { id: '1', name: 'Work', color: '#337ea9' };
     categoriesRepository.findByName.mockResolvedValue(null);
     categoriesRepository.create.mockResolvedValue(category);
 
-    await expect(service.create({ name: 'Work', color: 'blue' })).resolves.toBe(
-      category,
-    );
+    await expect(
+      service.create({ name: 'Work', color: '#337ea9' }),
+    ).resolves.toBe(category);
     expect(categoriesRepository.create).toHaveBeenCalledWith({
       name: 'Work',
-      color: 'blue',
+      color: '#337ea9',
     });
   });
 
@@ -85,6 +87,74 @@ describe('CategoriesService', () => {
 
     await expect(service.remove(category.id)).resolves.toBeUndefined();
     expect(categoriesRepository.remove).toHaveBeenCalledWith(category);
+  });
+
+  it('renames a category', async () => {
+    const category = { id: '1', name: 'Work', color: '#337ea9' };
+    const renamed = { ...category, name: 'Projects' };
+    categoriesRepository.findById.mockResolvedValue(category);
+    categoriesRepository.findByName.mockResolvedValue(null);
+    categoriesRepository.update.mockResolvedValue(renamed);
+
+    await expect(service.update('1', { name: 'Projects' })).resolves.toBe(
+      renamed,
+    );
+    expect(categoriesRepository.update).toHaveBeenCalledWith(category, {
+      name: 'Projects',
+    });
+  });
+
+  it('recolors a category', async () => {
+    const category = { id: '1', name: 'Work', color: '#337ea9' };
+    const recolored = { ...category, color: '#d44c47' };
+    categoriesRepository.findById.mockResolvedValue(category);
+    categoriesRepository.update.mockResolvedValue(recolored);
+
+    await expect(service.update('1', { color: '#d44c47' })).resolves.toBe(
+      recolored,
+    );
+    expect(categoriesRepository.update).toHaveBeenCalledWith(category, {
+      color: '#d44c47',
+    });
+  });
+
+  it('allows changing the case of a category name', async () => {
+    const category = { id: '1', name: 'Work', color: '#337ea9' };
+    categoriesRepository.findById.mockResolvedValue(category);
+    categoriesRepository.findByName.mockResolvedValue(category);
+    categoriesRepository.update.mockResolvedValue({
+      ...category,
+      name: 'WORK',
+    });
+
+    await expect(service.update('1', { name: 'WORK' })).resolves.toMatchObject({
+      name: 'WORK',
+    });
+  });
+
+  it('rejects renaming to another category name', async () => {
+    categoriesRepository.findById.mockResolvedValue({ id: '1', name: 'Work' });
+    categoriesRepository.findByName.mockResolvedValue({
+      id: '2',
+      name: 'Home',
+    });
+
+    await expect(service.update('1', { name: 'Home' })).rejects.toThrow(
+      ConflictException,
+    );
+    await expect(service.update('1', { name: 'Home' })).rejects.toThrow(
+      'A category with this name already exists',
+    );
+    expect(categoriesRepository.update).not.toHaveBeenCalled();
+  });
+
+  it('throws NotFoundException when updating a missing category', async () => {
+    categoriesRepository.findById.mockResolvedValue(null);
+
+    await expect(
+      service.update('missing', { color: '#d44c47' }),
+    ).rejects.toThrow('Category not found');
+    expect(categoriesRepository.update).not.toHaveBeenCalled();
   });
 
   it('throws NotFoundException when removing a missing category', async () => {

@@ -1,6 +1,7 @@
 import { useRef, useState, type ClipboardEvent, type DragEvent, type KeyboardEvent } from 'react'
 import { NotePencil } from '@phosphor-icons/react'
 import type { Category } from '../categories/types'
+import { toneStyle } from '../categories/tone'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 import { applyEdit, type Edit } from '../lib/applyEdit'
 import { wrapSelection } from '../lib/formatting'
@@ -93,7 +94,7 @@ export function NoteEditor({
 
   const hasTitle = title.trim().length > 0
   const status = useAutosave({ title: title.trim(), content }, onSave, { enabled: hasTitle })
-  const accent = note.categories[0]?.color ?? 'gray'
+  const accent = note.categories[0]?.color
 
   function imageFiles(files: FileList | null) {
     return Array.from(files ?? []).filter((file) => IMAGE_TYPES.includes(file.type))
@@ -166,7 +167,7 @@ export function NoteEditor({
         }}
         onDrop={handleDrop}
       >
-        <span className={`document-icon chip-${accent}`} aria-hidden="true">
+        <span className="document-icon tone-tile" style={toneStyle(accent)} aria-hidden="true">
           <NotePencil size={26} weight="duotone" />
         </span>
 

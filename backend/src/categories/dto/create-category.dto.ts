@@ -1,13 +1,15 @@
 import { Transform } from 'class-transformer';
 import {
-  IsIn,
   IsNotEmpty,
   IsOptional,
+  Matches,
   IsString,
   MaxLength,
 } from 'class-validator';
-import { CATEGORY_COLORS, CATEGORY_NAME_MAX_LENGTH } from '../category.entity';
-import type { CategoryColor } from '../category.entity';
+import { CATEGORY_NAME_MAX_LENGTH } from '../category.entity';
+
+const normalizeColor = ({ value }: { value: unknown }) =>
+  typeof value === 'string' ? value.toLowerCase() : value;
 
 export class CreateCategoryDto {
   @Transform(({ value }: { value: unknown }) =>
@@ -19,6 +21,9 @@ export class CreateCategoryDto {
   name: string;
 
   @IsOptional()
-  @IsIn(CATEGORY_COLORS)
-  color?: CategoryColor;
+  @Transform(normalizeColor)
+  @Matches(/^#[0-9a-f]{6}$/i, {
+    message: 'Color must be a hex value like #1a2b3c',
+  })
+  color = '#787774';
 }

@@ -3,7 +3,9 @@ import { X } from '@phosphor-icons/react'
 import { categoriesApi } from '../categories/api'
 import { CategoryChip } from '../categories/CategoryChip'
 import { CategoryNav } from '../categories/CategoryNav'
-import { nextColor, type Category } from '../categories/types'
+import { nextColor } from '../categories/palette'
+import type { Category } from '../categories/types'
+import type { CategoryPatch } from '../categories/api'
 import { useCategories } from '../categories/useCategories'
 import { Toast } from '../components/Toast'
 import { useShortcut } from '../lib/useShortcut'
@@ -81,6 +83,18 @@ export function Workspace() {
     await categoriesApi.remove(category.id)
     categories.drop(category.id)
     if (categoryId === category.id) setCategoryId(null)
+    active.reload()
+    archived.reload()
+  }
+
+  async function createSidebarCategory(name: string, color: string) {
+    const category = await categoriesApi.create(name, color)
+    categories.add(category)
+  }
+
+  async function updateCategory(category: Category, patch: CategoryPatch) {
+    const updated = await categoriesApi.update(category.id, patch)
+    categories.update(category.id, updated)
     active.reload()
     archived.reload()
   }
@@ -169,7 +183,10 @@ export function Workspace() {
   }
 
   async function createCategory(note: Note, name: string) {
-    const category = await categoriesApi.create(name, nextColor(categories.categories.length))
+    const category = await categoriesApi.create(
+      name,
+      nextColor(categories.categories.map(({ color }) => color)),
+    )
     categories.add(category)
     await toggleCategory(note, category)
   }
@@ -261,6 +278,8 @@ export function Workspace() {
           activeId={categoryId}
           onSelect={changeFilter}
           onDelete={deleteCategory}
+          onCreate={createSidebarCategory}
+          onUpdate={updateCategory}
         />
       </Sidebar>
 

@@ -1,7 +1,10 @@
 import { useState } from 'react'
-import { X } from '@phosphor-icons/react'
+import { NotePencil, Plus, X } from '@phosphor-icons/react'
 import { ConfirmDialog } from '../components/ConfirmDialog'
+import { CategoryForm } from './CategoryForm'
 import { CategoryDot } from './CategoryChip'
+import type { CategoryPatch } from './api'
+import { toneStyle } from './tone'
 import type { Category } from './types'
 
 type Props = {
@@ -10,12 +13,16 @@ type Props = {
   activeId: string | null
   onSelect: (id: string | null) => void
   onDelete: (category: Category) => Promise<void>
+  onCreate: (name: string, color: string) => Promise<void>
+  onUpdate: (category: Category, patch: CategoryPatch) => Promise<void>
 }
 
-export function CategoryNav({ categories, counts, activeId, onSelect, onDelete }: Props) {
+export function CategoryNav({ categories, counts, activeId, onSelect, onDelete, onCreate, onUpdate }: Props) {
   const [deleting, setDeleting] = useState<Category | null>(null)
+  const [creating, setCreating] = useState(false)
+  const [editing, setEditing] = useState<Category | null>(null)
 
-  if (categories.length === 0) return null
+  const used = categories.map(({ color }) => color)
 
   async function confirmDelete() {
     if (!deleting) return
@@ -26,7 +33,19 @@ export function CategoryNav({ categories, counts, activeId, onSelect, onDelete }
 
   return (
     <section className="category-nav" aria-label="Categories">
-      <h2 className="sidebar-heading">Categories</h2>
+      <div className="category-heading">
+        <h2 className="sidebar-heading">Categories</h2>
+        <button className="category-add" aria-label="New category" title="New category" onClick={() => {
+          setEditing(null)
+          setCreating((open) => !open)
+        }}>
+          <Plus size={14} weight="bold" />
+        </button>
+      </div>
+
+      {creating && (
+        <CategoryForm used={used} onSave={onCreate} onCancel={() => setCreating(false)} />
+      )}
 
       <ul className="category-items">
         {categories.map((category) => {
@@ -34,7 +53,18 @@ export function CategoryNav({ categories, counts, activeId, onSelect, onDelete }
 
           return (
             <li key={category.id} className="category-item">
-              <button
+              {editing?.id === category.id ? (
+                <CategoryForm
+                  used={used.filter((_, index) => index !== categories.indexOf(category))}
+                  category={category}
+                  onSave={(name, color) => onUpdate(category, { name, color })}
+                  onCancel={() => setEditing(null)}
+                  onDelete={() => {
+                    setEditing(null)
+                    setDeleting(category)
+                  }}
+                />
+              ) : <><button
                 className={`nav-item${active ? ' is-active' : ''}`}
                 aria-pressed={active}
                 onClick={() => onSelect(active ? null : category.id)}
@@ -44,6 +74,17 @@ export function CategoryNav({ categories, counts, activeId, onSelect, onDelete }
                 <span className="nav-count">{counts[category.id] ?? 0}</span>
               </button>
               <button
+                className="category-edit"
+                aria-label={`Edit ${category.name}`}
+                title="Edit category"
+                onClick={() => {
+                  setCreating(false)
+                  setEditing(category)
+                }}
+              >
+                <NotePencil size={12} weight="bold" />
+              </button>
+              <button
                 className="category-delete"
                 aria-label={`Delete ${category.name}`}
                 title="Delete category"
@@ -51,9 +92,19 @@ export function CategoryNav({ categories, counts, activeId, onSelect, onDelete }
               >
                 <X size={12} weight="bold" />
               </button>
+              </>}
             </li>
           )
         })}
+        <li className="category-add-mobile">
+          <button className="chip category-add-chip" style={toneStyle()} onClick={() => {
+            setEditing(null)
+            setCreating((open) => !open)
+          }}>
+            <Plus size={12} weight="bold" />
+            Add category
+          </button>
+        </li>
       </ul>
 
       <ConfirmDialog
