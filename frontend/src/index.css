@@ -1,0 +1,223 @@
+:root {
+  --font-sans: 'Geist', 'Helvetica Neue', system-ui, sans-serif;
+  --font-serif: 'Instrument Serif', Georgia, serif;
+  --font-mono: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+
+  --canvas: #fbfbfa;
+  --surface: #ffffff;
+  --surface-muted: #f7f6f3;
+  --border: #eaeaea;
+  --border-strong: #d9d8d4;
+  --text: #2f3437;
+  --text-strong: #111111;
+  --text-muted: #787774;
+  --button: #111111;
+  --button-hover: #333333;
+  --button-text: #ffffff;
+  --focus: #1f6c9f;
+
+  --red-bg: #fdebec;
+  --red-text: #9f2f2d;
+  --blue-bg: #e1f3fe;
+  --blue-text: #1f6c9f;
+  --green-bg: #edf3ec;
+  --green-text: #346538;
+  --yellow-bg: #fbf3db;
+  --yellow-text: #956400;
+
+  --radius-sm: 6px;
+  --radius: 10px;
+  --shadow-hover: 0 2px 8px rgba(0, 0, 0, 0.04);
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --canvas: #191919;
+    --surface: #202020;
+    --surface-muted: #252525;
+    --border: #2f2f2f;
+    --border-strong: #3a3a3a;
+    --text: #d4d4d2;
+    --text-strong: #f1f1ef;
+    --text-muted: #8f8e8a;
+    --button: #f1f1ef;
+    --button-hover: #d4d4d2;
+    --button-text: #191919;
+    --focus: #6db3e0;
+
+    --red-bg: #3a2526;
+    --red-text: #f0a3a1;
+    --blue-bg: #1f3140;
+    --blue-text: #8cc6ec;
+    --green-bg: #243326;
+    --green-text: #9ccc9f;
+    --yellow-bg: #3a3220;
+    --yellow-text: #e2c27a;
+
+    --shadow-hover: 0 2px 8px rgba(0, 0, 0, 0.3);
+
+    color-scheme: dark;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--canvas);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 56px 24px 96px;
+}
+
+.page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 24px;
+  margin-bottom: 32px;
+  border-bottom: 1px solid var(--border);
+}
+
+.page-title {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 48px;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--text-strong);
+}
+
+.page-meta {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 150ms, transform 100ms;
+}
+
+.button:active {
+  transform: scale(0.98);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.button-primary {
+  background: var(--button);
+  color: var(--button-text);
+}
+
+.button-primary:hover:not(:disabled) {
+  background: var(--button-hover);
+}
+
+.button-ghost {
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.button-ghost:hover:not(:disabled) {
+  background: var(--surface-muted);
+  color: var(--text-strong);
+}
+
+.icon-button {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background-color 150ms, color 150ms;
+}
+
+.icon-button:hover {
+  background: var(--surface-muted);
+  color: var(--text-strong);
+}
+
+.icon-button-danger:hover {
+  background: var(--red-bg);
+  color: var(--red-text);
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: 32px 16px 64px;
+  }
+
+  .page-title {
+    font-size: 38px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+.button-danger {
+  background: var(--red-bg);
+  color: var(--red-text);
+}
+
+.button-danger:hover:not(:disabled) {
+  filter: brightness(0.96);
+}
