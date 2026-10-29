@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { notesApi } from '../notes/api'
+import type { NoteInput } from '../notes/types'
 import { NotesEmpty, NotesError, NotesLoading } from '../notes/components/NoteStates'
 import { useNotes } from '../notes/useNotes'
 import { NoteListPane } from './NoteListPane'
-import { NoteView } from './NoteView'
+import { NoteEditor } from './NoteEditor'
 import { Sidebar } from './Sidebar'
 import './workspace.css'
 
@@ -13,6 +14,7 @@ export function Workspace() {
   const { notes, loading, error, reload, upsert } = useNotes(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
+  const [freshId, setFreshId] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
 
   const selected = notes.find((note) => note.id === selectedId) ?? null
@@ -25,11 +27,16 @@ export function Workspace() {
       const note = await notesApi.create({ title: NEW_NOTE_TITLE, content: '' })
       upsert(note)
       setSelectedId(note.id)
+      setFreshId(note.id)
     } catch (err) {
       setActionError(err instanceof Error ? err.message : 'Something went wrong')
     } finally {
       setCreating(false)
     }
+  }
+
+  async function saveNote(id: string, input: NoteInput) {
+    upsert(await notesApi.update(id, input))
   }
 
   function renderList() {
@@ -56,10 +63,15 @@ export function Workspace() {
       <main className="editor-pane">
         {actionError && <NotesError message={actionError} />}
         {selected ? (
-          <NoteView note={selected} />
+          <NoteEditor
+            key={selected.id}
+            note={selected}
+            fresh={selected.id === freshId}
+            onSave={(input) => saveNote(selected.id, input)}
+          />
         ) : (
           <div className="editor-placeholder">
-            <p>Select a note to read it, or start a new one.</p>
+            <p>Pick a note to keep writing, or start a new one.</p>
           </div>
         )}
       </main>

@@ -202,30 +202,67 @@
   padding: 48px 32px 120px;
 }
 
-.document-date {
-  display: block;
+.document-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   margin-bottom: 20px;
+}
+
+.document-date {
   font-family: var(--font-mono);
   font-size: 12px;
   color: var(--text-muted);
 }
 
+.save-status {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+  transition: color 150ms;
+}
+
+.save-status.is-saving {
+  color: var(--yellow-text);
+}
+
+.save-status.is-error {
+  color: var(--red-text);
+}
+
+.document-title,
+.document-body {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  resize: none;
+  outline: none;
+  field-sizing: content;
+  overflow-wrap: anywhere;
+}
+
 .document-title {
   font-family: var(--font-serif);
-  font-weight: 400;
   font-size: 44px;
   line-height: 1.1;
   letter-spacing: -0.02em;
   color: var(--text-strong);
-  overflow-wrap: anywhere;
 }
 
 .document-body {
+  min-height: 50vh;
   margin-top: 20px;
   font-size: 16px;
   line-height: 1.75;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
+}
+
+.document-title::placeholder,
+.document-body::placeholder {
+  color: var(--text-muted);
+  opacity: 0.6;
 }
 
 /* States */
