@@ -1,4 +1,4 @@
-import { useState, type KeyboardEvent } from 'react'
+import { useState, type ClipboardEvent, type DragEvent, type KeyboardEvent } from 'react'
 import { NotePencil } from '@phosphor-icons/react'
 import type { Category } from '../categories/types'
 import { ConfirmDialog } from '../components/ConfirmDialog'
@@ -6,9 +6,11 @@ import { applyEdit, type Edit } from '../lib/applyEdit'
 import { wrapSelection } from '../lib/formatting'
 import { continueList, shiftIndent } from '../lib/listEditing'
 import { useAutosave } from '../lib/useAutosave'
-import type { Note, NoteInput } from '../notes/types'
+import type { Note, NoteImage, NoteInput } from '../notes/types'
 import { EditorTopbar } from './EditorTopbar'
 import { NoteProperties } from './NoteProperties'
+import { NoteImages } from './NoteImages'
+import { IMAGE_TYPES } from '../lib/imageRules'
 
 const TITLE_MAX_LENGTH = 120
 
@@ -60,6 +62,8 @@ type Props = {
   categories: Category[]
   onToggleCategory: (category: Category) => void
   onCreateCategory: (name: string) => Promise<void>
+  onAddImages: (files: File[]) => Promise<void>
+  onRemoveImage: (image: NoteImage) => Promise<void>
 }
 
 export function NoteEditor({
@@ -73,14 +77,35 @@ export function NoteEditor({
   categories,
   onToggleCategory,
   onCreateCategory,
+  onAddImages,
+  onRemoveImage,
 }: Props) {
   const [title, setTitle] = useState(note.title)
   const [content, setContent] = useState(note.content)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const [draggingFiles, setDraggingFiles] = useState(false)
 
   const hasTitle = title.trim().length > 0
   const status = useAutosave({ title: title.trim(), content }, onSave, { enabled: hasTitle })
   const accent = note.categories[0]?.color ?? 'gray'
+
+  function imageFiles(files: FileList | null) {
+    return Array.from(files ?? []).filter((file) => IMAGE_TYPES.includes(file.type))
+  }
+
+  function handleDrop(event: DragEvent<HTMLElement>) {
+    event.preventDefault()
+    setDraggingFiles(false)
+    const files = imageFiles(event.dataTransfer.files)
+    if (files.length) void onAddImages(files)
+  }
+
+  function handlePaste(event: ClipboardEvent<HTMLTextAreaElement>) {
+    const files = imageFiles(event.clipboardData.files)
+    if (!files.length) return
+    event.preventDefault()
+    void onAddImages(files)
+  }
 
   return (
     <>
@@ -95,7 +120,19 @@ export function NoteEditor({
         onDelete={() => setConfirmingDelete(true)}
       />
 
-      <article className="document">
+      <article
+        className={`document${draggingFiles ? ' is-dragging-files' : ''}`}
+        onDragEnter={(event) => {
+          if (event.dataTransfer.types.includes('Files')) setDraggingFiles(true)
+        }}
+        onDragOver={(event) => {
+          if (event.dataTransfer.types.includes('Files')) event.preventDefault()
+        }}
+        onDragLeave={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setDraggingFiles(false)
+        }}
+        onDrop={handleDrop}
+      >
         <span className={`document-icon chip-${accent}`} aria-hidden="true">
           <NotePencil size={26} weight="duotone" />
         </span>
@@ -119,6 +156,8 @@ export function NoteEditor({
           onCreateCategory={onCreateCategory}
         />
 
+        <NoteImages note={note} onAddImages={onAddImages} onRemoveImage={onRemoveImage} />
+
         <textarea
           className="document-body"
           aria-label="Content"
@@ -126,6 +165,7 @@ export function NoteEditor({
           value={content}
           onChange={(event) => setContent(event.target.value)}
           onKeyDown={handleBodyKeyDown}
+          onPaste={handlePaste}
         />
       </article>
 

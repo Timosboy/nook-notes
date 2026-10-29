@@ -6,8 +6,17 @@ export type Note = {
   content: string
   archived: boolean
   categories: Category[]
+  images: NoteImage[]
   createdAt: string
   updatedAt: string
+}
+
+export type NoteImage = {
+  id: string
+  filename: string
+  mimeType: string
+  size: number
+  createdAt: string
 }
 
 export type NoteInput = {

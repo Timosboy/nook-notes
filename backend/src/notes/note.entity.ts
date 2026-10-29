@@ -5,10 +5,12 @@ import {
   Index,
   JoinTable,
   ManyToMany,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Category } from '../categories/category.entity';
+import { NoteImage } from '../images/note-image.entity';
 
 export const TITLE_MAX_LENGTH = 120;
 
@@ -34,6 +36,9 @@ export class Note {
     inverseJoinColumn: { name: 'categoryId' },
   })
   categories: Category[];
+
+  @OneToMany(() => NoteImage, (image) => image.note)
+  images: NoteImage[];
 
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;

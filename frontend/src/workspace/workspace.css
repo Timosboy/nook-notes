@@ -140,6 +140,28 @@
   transition: background-color 120ms;
 }
 
+.note-row.has-images {
+  grid-template-columns: minmax(0, 1fr) 56px;
+  grid-template-rows: auto auto auto;
+  align-items: center;
+}
+
+.note-row.has-images .note-row-title,
+.note-row.has-images .note-row-preview,
+.note-row.has-images .note-row-meta {
+  grid-column: 1;
+}
+
+.note-row-image {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  width: 56px;
+  height: 56px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+}
+
 .note-row:hover {
   background: var(--surface-muted);
 }

@@ -5,6 +5,7 @@ import configuration from './config/configuration';
 import { dataSourceOptions } from './database/data-source';
 import { CategoriesModule } from './categories/categories.module';
 import { NotesModule } from './notes/notes.module';
+import { ImagesModule } from './images/images.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { NotesModule } from './notes/notes.module';
     TypeOrmModule.forRoot(dataSourceOptions),
     NotesModule,
     CategoriesModule,
+    ImagesModule,
   ],
 })
 export class AppModule {}

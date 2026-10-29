@@ -41,6 +41,12 @@ export function useNotes(archived: boolean) {
     [updateNotes],
   )
 
+  const patch = useCallback(
+    (id: string, change: (note: Note) => Note) =>
+      updateNotes((notes) => notes.map((note) => (note.id === id ? change(note) : note))),
+    [updateNotes],
+  )
+
   const drop = useCallback(
     (id: string) => updateNotes((notes) => notes.filter((note) => note.id !== id)),
     [updateNotes],
@@ -54,6 +60,7 @@ export function useNotes(archived: boolean) {
     error: current?.error ?? null,
     reload,
     upsert,
+    patch,
     drop,
   }
 }

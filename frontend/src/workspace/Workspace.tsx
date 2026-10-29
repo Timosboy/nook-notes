@@ -8,9 +8,10 @@ import { useCategories } from '../categories/useCategories'
 import { Toast } from '../components/Toast'
 import { useShortcut } from '../lib/useShortcut'
 import { useToast } from '../lib/useToast'
+import { checkImage } from '../lib/imageRules'
 import { notesApi } from '../notes/api'
 import { NotesEmpty, NotesError, NotesLoading } from '../notes/components/NoteStates'
-import type { Note, NoteInput } from '../notes/types'
+import type { Note, NoteImage, NoteInput } from '../notes/types'
 import { useNotes } from '../notes/useNotes'
 import { Home } from './Home'
 import { NoteEditor } from './NoteEditor'
@@ -119,6 +120,39 @@ export function Workspace() {
   async function saveNote(id: string, input: NoteInput) {
     const note = await notesApi.update(id, input)
     listFor(note).upsert(note)
+  }
+
+  async function addImages(note: Note, files: File[]) {
+    let count = note.images.length
+
+    for (const file of files) {
+      const validation = checkImage(file, count)
+      if (validation) {
+        showToast(validation)
+        continue
+      }
+
+      try {
+        const image = await notesApi.uploadImage(note.id, file)
+        count += 1
+        listFor(note).patch(note.id, (current) => ({ ...current, images: [...current.images, image] }))
+      } catch (err) {
+        showToast(err instanceof Error ? err.message : 'Something went wrong')
+      }
+    }
+  }
+
+  async function removeImage(note: Note, image: NoteImage) {
+    try {
+      await notesApi.deleteImage(note.id, image.id)
+      listFor(note).patch(note.id, (current) => ({
+        ...current,
+        images: current.images.filter(({ id }) => id !== image.id),
+      }))
+      showToast('Image removed')
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Something went wrong')
+    }
   }
 
   async function toggleCategory(note: Note, category: Category) {
@@ -256,6 +290,8 @@ export function Workspace() {
             categories={categories.categories}
             onToggleCategory={(category) => void toggleCategory(selected, category)}
             onCreateCategory={(name) => createCategory(selected, name)}
+            onAddImages={(files) => addImages(selected, files)}
+            onRemoveImage={(image) => removeImage(selected, image)}
             onBack={() => setSelectedId(null)}
           />
         ) : (
