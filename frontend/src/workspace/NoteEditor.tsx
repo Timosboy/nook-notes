@@ -1,13 +1,38 @@
-import { useState } from 'react'
+import { useState, type KeyboardEvent } from 'react'
 import { NotePencil } from '@phosphor-icons/react'
 import type { Category } from '../categories/types'
 import { ConfirmDialog } from '../components/ConfirmDialog'
+import { applyEdit } from '../lib/applyEdit'
+import { continueList, shiftIndent, type Edit } from '../lib/listEditing'
 import { useAutosave } from '../lib/useAutosave'
 import type { Note, NoteInput } from '../notes/types'
 import { EditorTopbar } from './EditorTopbar'
 import { NoteProperties } from './NoteProperties'
 
 const TITLE_MAX_LENGTH = 120
+
+function editFor(event: KeyboardEvent<HTMLTextAreaElement>): Edit | null {
+  const { value, selectionStart, selectionEnd } = event.currentTarget
+
+  if (event.key === 'Enter' && !event.shiftKey) {
+    return continueList(value, selectionStart, selectionEnd)
+  }
+  if (event.key === 'Tab') {
+    return shiftIndent(value, selectionStart, selectionEnd, event.shiftKey)
+  }
+  return null
+}
+
+function handleBodyKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+  const { nativeEvent, metaKey, ctrlKey, altKey } = event
+  if (nativeEvent.isComposing || metaKey || ctrlKey || altKey) return
+
+  const edit = editFor(event)
+  if (!edit) return
+
+  event.preventDefault()
+  applyEdit(event.currentTarget, edit)
+}
 
 type Props = {
   note: Note
@@ -84,6 +109,7 @@ export function NoteEditor({
           placeholder="Start writing..."
           value={content}
           onChange={(event) => setContent(event.target.value)}
+          onKeyDown={handleBodyKeyDown}
         />
       </article>
 
