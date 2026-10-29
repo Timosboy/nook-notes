@@ -1,13 +1,13 @@
 import type { ReactNode } from 'react'
 import { NotePencil, WarningCircle } from '@phosphor-icons/react'
 
-const SKELETON_COUNT = 3
+const SKELETON_COUNT = 4
 
 export function NotesLoading() {
   return (
-    <ul className="note-list" aria-busy="true" aria-label="Loading notes">
+    <ul className="note-rows" aria-busy="true" aria-label="Loading notes">
       {Array.from({ length: SKELETON_COUNT }, (_, index) => (
-        <li key={index} className="note-skeleton" />
+        <li key={index} className="row-skeleton" />
       ))}
     </ul>
   )
@@ -23,7 +23,7 @@ export function NotesEmpty({ title, description, action }: EmptyProps) {
   return (
     <div className="state">
       <span className="state-icon">
-        <NotePencil size={22} weight="bold" />
+        <NotePencil size={20} weight="bold" />
       </span>
       <h2 className="state-title">{title}</h2>
       <p className="state-text">{description}</p>
