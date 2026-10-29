@@ -1,8 +1,8 @@
-# Notes
+# Nook
 
 A small full stack notes app: write notes, archive them, sort them with colored categories, pin the important ones, add an emoji and images. It was built for the Ensolvers full stack exercise (see [CHALLENGE.md](CHALLENGE.md)).
 
-![Notes in the light theme](docs/screenshots/light.png)
+![Nook in the light theme](docs/screenshots/light.png)
 
 - `backend/`: REST API, NestJS + TypeORM + PostgreSQL
 - `frontend/`: single page app, React + Vite + TypeScript
@@ -32,10 +32,21 @@ Press `Ctrl+C` to stop both apps. The database container keeps running; `./run.s
 | Option | What it does |
 |---|---|
 | `--no-seed` | Do not load the demo notes |
+| `--lan` | Also open the app to your local network, to try it on a phone (see below) |
 | `--down` | Stop the database container and exit |
 | `--help` | Show the usage |
 
 Logs are written to `.run/` (ignored by git).
+
+### Try it on your phone
+
+```bash
+./run.sh --lan
+```
+
+The script prints a second address such as `http://192.168.1.20:5173`. Open it on a phone connected to the same Wi-Fi. The first time, macOS may ask whether Node can accept incoming connections: allow it. On the computer, open the printed address too (not `localhost`), so the browser and the API agree on the origin.
+
+The API accepts several browser origins: `FRONTEND_URL` can hold a comma separated list.
 
 ### Without the script
 
@@ -95,7 +106,7 @@ Developed and tested on macOS (Apple silicon). `run.sh` only uses portable bash 
 - Categories with their own color (a 10 color palette or any custom color), created and edited from the sidebar.
 - Pin notes to the top of the list.
 - Emoji icon for each note, with a searchable picker.
-- Image attachments (JPEG, PNG, GIF, WebP, up to 5 MB each and 10 per note): upload, drag and drop, paste, and a full screen viewer.
+- Images inside the text of a note (JPEG, PNG, GIF, WebP, up to 5 MB each and 30 per note): paste, drag and drop onto the text, or use the insert button, and click one to see it full screen.
 - Search, a live word count and reading time.
 - A rich text editor with Markdown shortcuts: `1. ` and `- ` start a list, `[ ] ` a checklist, `# ` a heading, `> ` a quote, and `**bold**` or `_italic_` format as you type. Cmd/Ctrl+B and Cmd/Ctrl+I work, Tab indents list items. Notes are stored as Markdown text.
 - Light, night and reading themes (the reading theme uses warm paper tones with no white).
@@ -164,7 +175,7 @@ frontend/src
 
 - **Migrations, not `synchronize`.** The schema only changes through the migrations in `backend/src/database/migrations`. `run.sh` applies them.
 - **Validation.** Every request body goes through DTOs with `class-validator`, with `whitelist` and `forbidNonWhitelisted` on. Errors always look like `{ statusCode, message, path, timestamp }`.
-- **Images live in PostgreSQL** (`bytea`), so everything persists in the database and `run.sh` needs no extra storage. The type is detected from the file content, not from what the browser says.
+- **Images live in PostgreSQL** (`bytea`), so everything persists in the database and `run.sh` needs no extra storage. The type is detected from the file content, not from what the browser says. In the note text an image is plain Markdown, `![name](/api/notes/<noteId>/images/<imageId>)`, and the editor resolves that path against the API address. Images that are no longer in the text are removed when you leave the note.
 - **Pinning is not an edit.** Pinning a note keeps its `updatedAt`, and archiving a pinned note unpins it.
 - **Category filter.** The API supports `GET /api/notes?categoryId=...`, which keeps all the categories of each note. The UI filters the notes it already has in memory, so it is instant and it works with Undo. Switching the UI to the server filter is a small change.
 - **Category colors** are stored as `#rrggbb`. The chips derive their background and text from that color and the current theme, so any color works in every theme.
