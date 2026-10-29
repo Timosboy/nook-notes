@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import configuration from './config/configuration';
 import { dataSourceOptions } from './database/data-source';
+import { CategoriesModule } from './categories/categories.module';
 import { NotesModule } from './notes/notes.module';
 
 @Module({
@@ -10,6 +11,7 @@ import { NotesModule } from './notes/notes.module';
     ConfigModule.forRoot({ isGlobal: true, load: [configuration] }),
     TypeOrmModule.forRoot(dataSourceOptions),
     NotesModule,
+    CategoriesModule,
   ],
 })
 export class AppModule {}
