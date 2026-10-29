@@ -132,7 +132,6 @@ body {
   font-family: var(--font-sans);
   font-size: 15px;
   line-height: 1.6;
-  transition: background-color 200ms var(--ease-out), color 200ms var(--ease-out);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -384,4 +383,32 @@ kbd {
     opacity: 0;
     transform: translateX(-24px);
   }
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  z-index: 2;
+}
+
+html.theme-switching *,
+html.theme-switching *::before,
+html.theme-switching *::after {
+  transition: none !important;
+}
+
+.icon-button {
+  transition: background-color 150ms, color 150ms, transform 120ms var(--ease-out);
+}
+
+.icon-button:active {
+  transform: scale(0.92);
 }
