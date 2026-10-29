@@ -12,6 +12,7 @@ import { notesApi } from '../notes/api'
 import { NotesEmpty, NotesError, NotesLoading } from '../notes/components/NoteStates'
 import type { Note, NoteInput } from '../notes/types'
 import { useNotes } from '../notes/useNotes'
+import { Home } from './Home'
 import { NoteEditor } from './NoteEditor'
 import { NoteListPane } from './NoteListPane'
 import { Sidebar, type View } from './Sidebar'
@@ -81,6 +82,11 @@ export function Workspace() {
     if (categoryId === category.id) setCategoryId(null)
     active.reload()
     archived.reload()
+  }
+
+  function openNote(note: Note) {
+    setView(note.archived ? 'archived' : 'active')
+    setSelectedId(note.id)
   }
 
   function changeView(next: View) {
@@ -241,6 +247,7 @@ export function Workspace() {
           <NoteEditor
             key={selected.id}
             note={selected}
+            section={copy.title}
             fresh={selected.id === freshId}
             onSave={(input) => saveNote(selected.id, input)}
             onDelete={() => deleteNote(selected.id)}
@@ -251,12 +258,13 @@ export function Workspace() {
             onBack={() => setSelectedId(null)}
           />
         ) : (
-          <div className="editor-placeholder">
-            <p>Pick a note to keep writing, or start a new one.</p>
-            <p className="shortcuts">
-              <kbd>N</kbd> new note <span aria-hidden="true">·</span> <kbd>/</kbd> search
-            </p>
-          </div>
+          <Home
+            notes={active.notes}
+            archivedCount={archived.notes.length}
+            onOpen={openNote}
+            onCreate={() => void createNote()}
+            onSearch={() => searchRef.current?.focus()}
+          />
         )}
       </main>
 

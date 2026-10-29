@@ -1,21 +1,24 @@
+import type { CSSProperties } from 'react'
 import { CategoryChip } from '../categories/CategoryChip'
 import { timeAgo } from '../lib/format'
 import type { Note } from '../notes/types'
 
 const MAX_CHIPS = 3
+const MAX_STAGGERED = 8
 
 type Props = {
   note: Note
+  order: number
   selected: boolean
   onSelect: () => void
 }
 
-export function NoteRow({ note, selected, onSelect }: Props) {
+export function NoteRow({ note, order, selected, onSelect }: Props) {
   const shown = note.categories.slice(0, MAX_CHIPS)
   const hidden = note.categories.length - shown.length
 
   return (
-    <li>
+    <li className="note-row-item" style={{ '--order': Math.min(order, MAX_STAGGERED) } as CSSProperties}>
       <button
         className={`note-row${selected ? ' is-selected' : ''}`}
         aria-current={selected || undefined}
