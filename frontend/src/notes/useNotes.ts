@@ -10,6 +10,8 @@ type Result = {
 
 const messageOf = (err: unknown) => (err instanceof Error ? err.message : 'Something went wrong')
 
+const byLatest = (a: Note, b: Note) => b.updatedAt.localeCompare(a.updatedAt)
+
 export function useNotes(archived: boolean) {
   const [result, setResult] = useState<Result | null>(null)
   const [version, setVersion] = useState(0)
@@ -28,6 +30,22 @@ export function useNotes(archived: boolean) {
   }, [archived, version])
 
   const reload = useCallback(() => setVersion((v) => v + 1), [])
+
+  const updateNotes = useCallback((change: (notes: Note[]) => Note[]) => {
+    setResult((current) => current && { ...current, notes: change(current.notes) })
+  }, [])
+
+  const upsert = useCallback(
+    (note: Note) =>
+      updateNotes((notes) => [note, ...notes.filter(({ id }) => id !== note.id)].sort(byLatest)),
+    [updateNotes],
+  )
+
+  const drop = useCallback(
+    (id: string) => updateNotes((notes) => notes.filter((note) => note.id !== id)),
+    [updateNotes],
+  )
+
   const current = result?.archived === archived ? result : null
 
   return {
@@ -35,5 +53,7 @@ export function useNotes(archived: boolean) {
     loading: !current,
     error: current?.error ?? null,
     reload,
+    upsert,
+    drop,
   }
 }
