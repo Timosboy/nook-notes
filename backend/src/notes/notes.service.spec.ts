@@ -1,9 +1,14 @@
 import { NotFoundException } from '@nestjs/common';
+import { CategoriesService } from '../categories/categories.service';
 import { NotesRepository } from './notes.repository';
 import { NotesService } from './notes.service';
 
 jest.mock('./notes.repository', () => ({
   NotesRepository: class NotesRepository {},
+}));
+
+jest.mock('../categories/categories.service', () => ({
+  CategoriesService: class CategoriesService {},
 }));
 
 describe('NotesService', () => {
@@ -15,6 +20,9 @@ describe('NotesService', () => {
     save: jest.Mock;
     remove: jest.Mock;
   };
+  let categoriesService: {
+    findOne: jest.Mock;
+  };
 
   beforeEach(() => {
     notesRepository = {
@@ -24,7 +32,13 @@ describe('NotesService', () => {
       save: jest.fn(),
       remove: jest.fn(),
     };
-    service = new NotesService(notesRepository as unknown as NotesRepository);
+    categoriesService = {
+      findOne: jest.fn(),
+    };
+    service = new NotesService(
+      notesRepository as unknown as NotesRepository,
+      categoriesService as unknown as CategoriesService,
+    );
   });
 
   it('lists active notes by default', async () => {
@@ -151,6 +165,88 @@ describe('NotesService', () => {
     await expect(
       service.archive('3fa85f64-5717-4562-b3fc-2c963f66afa6'),
     ).rejects.toThrow(NotFoundException);
+    expect(notesRepository.save).not.toHaveBeenCalled();
+  });
+
+  it('adds a category to a note', async () => {
+    const category = { id: 'category-id', name: 'Work' };
+    const note = {
+      id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+      title: 'Note',
+      content: '',
+      categories: [],
+    };
+    notesRepository.findById.mockResolvedValue(note);
+    categoriesService.findOne.mockResolvedValue(category);
+    notesRepository.save.mockResolvedValue(note);
+
+    await expect(service.addCategory(note.id, category.id)).resolves.toBe(note);
+    expect(note.categories).toEqual([category]);
+    expect(notesRepository.save).toHaveBeenCalledWith(note);
+  });
+
+  it('does not duplicate or save an existing category', async () => {
+    const category = { id: 'category-id', name: 'Work' };
+    const note = {
+      id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+      title: 'Note',
+      content: '',
+      categories: [category],
+    };
+    notesRepository.findById.mockResolvedValue(note);
+    categoriesService.findOne.mockResolvedValue(category);
+
+    await expect(service.addCategory(note.id, category.id)).resolves.toBe(note);
+    expect(note.categories).toEqual([category]);
+    expect(notesRepository.save).not.toHaveBeenCalled();
+  });
+
+  it('removes a category from a note', async () => {
+    const category = { id: 'category-id', name: 'Work' };
+    const note = {
+      id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+      title: 'Note',
+      content: '',
+      categories: [category],
+    };
+    notesRepository.findById.mockResolvedValue(note);
+    notesRepository.save.mockResolvedValue(note);
+
+    await expect(service.removeCategory(note.id, category.id)).resolves.toBe(
+      note,
+    );
+    expect(note.categories).toEqual([]);
+    expect(notesRepository.save).toHaveBeenCalledWith(note);
+  });
+
+  it('throws NotFoundException when adding a category to a missing note', async () => {
+    notesRepository.findById.mockResolvedValue(null);
+
+    await expect(
+      service.addCategory(
+        '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+        'category-id',
+      ),
+    ).rejects.toThrow(NotFoundException);
+    expect(categoriesService.findOne).not.toHaveBeenCalled();
+    expect(notesRepository.save).not.toHaveBeenCalled();
+  });
+
+  it('throws NotFoundException when adding a missing category', async () => {
+    const note = {
+      id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+      title: 'Note',
+      content: '',
+      categories: [],
+    };
+    notesRepository.findById.mockResolvedValue(note);
+    categoriesService.findOne.mockRejectedValue(
+      new NotFoundException('Category not found'),
+    );
+
+    await expect(service.addCategory(note.id, 'category-id')).rejects.toThrow(
+      NotFoundException,
+    );
     expect(notesRepository.save).not.toHaveBeenCalled();
   });
 

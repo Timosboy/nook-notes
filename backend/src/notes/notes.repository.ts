@@ -15,16 +15,21 @@ export class NotesRepository {
   findAll(archived: boolean): Promise<Note[]> {
     return this.notes.find({
       where: { archived },
-      order: { updatedAt: 'DESC' },
+      relations: { categories: true },
+      order: { updatedAt: 'DESC', categories: { name: 'ASC' } },
     });
   }
 
   findById(id: string): Promise<Note | null> {
-    return this.notes.findOneBy({ id });
+    return this.notes.findOne({
+      where: { id },
+      relations: { categories: true },
+      order: { categories: { name: 'ASC' } },
+    });
   }
 
   create(note: NewNote): Promise<Note> {
-    return this.notes.save(this.notes.create(note));
+    return this.notes.save(this.notes.create({ ...note, categories: [] }));
   }
 
   save(note: Note): Promise<Note> {
