@@ -1,3 +1,4 @@
+import { NotFoundException } from '@nestjs/common';
 import { NotesRepository } from './notes.repository';
 import { NotesService } from './notes.service';
 
@@ -11,6 +12,7 @@ describe('NotesService', () => {
     findAll: jest.Mock;
     findById: jest.Mock;
     create: jest.Mock;
+    save: jest.Mock;
   };
 
   beforeEach(() => {
@@ -18,6 +20,7 @@ describe('NotesService', () => {
       findAll: jest.fn(),
       findById: jest.fn(),
       create: jest.fn(),
+      save: jest.fn(),
     };
     service = new NotesService(notesRepository as unknown as NotesRepository);
   });
@@ -68,5 +71,36 @@ describe('NotesService', () => {
       title: 'Note',
       content: '',
     });
+  });
+
+  it('updates only the given fields', async () => {
+    const note = {
+      id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+      title: 'Old title',
+      content: 'Existing content',
+    };
+    notesRepository.findById.mockResolvedValue(note);
+    notesRepository.save.mockResolvedValue(note);
+
+    await expect(service.update(note.id, { title: 'New title' })).resolves.toBe(
+      note,
+    );
+    expect(note).toEqual({
+      id: note.id,
+      title: 'New title',
+      content: 'Existing content',
+    });
+    expect(notesRepository.save).toHaveBeenCalledWith(note);
+  });
+
+  it('throws NotFoundException when updating a missing note', async () => {
+    notesRepository.findById.mockResolvedValue(null);
+
+    await expect(
+      service.update('3fa85f64-5717-4562-b3fc-2c963f66afa6', {
+        title: 'New title',
+      }),
+    ).rejects.toThrow(NotFoundException);
+    expect(notesRepository.save).not.toHaveBeenCalled();
   });
 });

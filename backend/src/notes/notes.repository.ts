@@ -23,4 +23,8 @@ export class NotesRepository {
   create(note: NewNote): Promise<Note> {
     return this.notes.save(this.notes.create(note));
   }
+
+  save(note: Note): Promise<Note> {
+    return this.notes.save(note);
+  }
 }

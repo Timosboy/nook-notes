@@ -3,10 +3,12 @@ import {
   Controller,
   Get,
   Param,
+  Patch,
   ParseUUIDPipe,
   Post,
 } from '@nestjs/common';
 import { CreateNoteDto } from './dto/create-note.dto';
+import { UpdateNoteDto } from './dto/update-note.dto';
 import { Note } from './note.entity';
 import { NotesService } from './notes.service';
 
@@ -27,5 +29,13 @@ export class NotesController {
   @Post()
   create(@Body() dto: CreateNoteDto): Promise<Note> {
     return this.notesService.create(dto);
+  }
+
+  @Patch(':id')
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateNoteDto,
+  ): Promise<Note> {
+    return this.notesService.update(id, dto);
   }
 }

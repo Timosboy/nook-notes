@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Note } from './note.entity';
 import { NotesRepository } from './notes.repository';
 import { CreateNoteDto } from './dto/create-note.dto';
+import { UpdateNoteDto } from './dto/update-note.dto';
 
 @Injectable()
 export class NotesService {
@@ -26,5 +27,12 @@ export class NotesService {
       title: dto.title,
       content: dto.content ?? '',
     });
+  }
+
+  async update(id: string, dto: UpdateNoteDto): Promise<Note> {
+    const note = await this.findOne(id);
+    Object.assign(note, dto);
+
+    return this.notesRepository.save(note);
   }
 }
