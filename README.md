@@ -1,6 +1,6 @@
 # Nook
 
-A small full stack notes app: write notes, archive them, sort them with colored categories, pin the important ones, add an emoji and images. It was built for the Ensolvers full stack exercise (see [CHALLENGE.md](CHALLENGE.md)).
+A small full stack notes app: write notes, archive them, sort them with colored categories, pin the important ones, add an emoji and images. It was built for a full stack exercise.
 
 ![Nook in the light theme](docs/screenshots/light.png)
 
