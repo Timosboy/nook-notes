@@ -1,0 +1,39 @@
+.brand-credit {
+  --brand: #1d4a3a;
+  display: flex;
+  align-items: center;
+  flex: none;
+  gap: 8px;
+}
+
+:root[data-theme='dark'] .brand-credit {
+  --brand: #fafaf8;
+}
+
+.brand-credit-mark {
+  display: grid;
+  flex: none;
+  place-items: center;
+  color: var(--brand);
+}
+
+.brand-credit-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.brand-credit-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.brand-credit-name {
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--text);
+}

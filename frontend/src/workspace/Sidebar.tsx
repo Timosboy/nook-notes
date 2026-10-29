@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Archive, Notepad, NotePencil, Plus, type Icon } from '@phosphor-icons/react'
+import { BrandCredit } from './BrandCredit'
 import { ThemeCycleButton, ThemeSwitch } from './ThemeSwitch'
 
 export type View = 'active' | 'archived'
@@ -56,6 +57,7 @@ export function Sidebar({ view, counts, creating, onViewChange, onCreate, childr
         {children}
 
         <div className="sidebar-footer">
+          <BrandCredit />
           <ThemeSwitch />
         </div>
       </div>
