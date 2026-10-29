@@ -27,11 +27,20 @@ describe('NotesService', () => {
     service = new NotesService(notesRepository as unknown as NotesRepository);
   });
 
-  it('returns the repository result from findAll', async () => {
+  it('lists active notes by default', async () => {
     const notes = [{ id: '1', title: 'Note', content: '' }];
     notesRepository.findAll.mockResolvedValue(notes);
 
     await expect(service.findAll()).resolves.toBe(notes);
+    expect(notesRepository.findAll).toHaveBeenCalledWith(false);
+  });
+
+  it('passes true when listing archived notes', async () => {
+    const notes = [{ id: '1', title: 'Note', content: '' }];
+    notesRepository.findAll.mockResolvedValue(notes);
+
+    await expect(service.findAll(true)).resolves.toBe(notes);
+    expect(notesRepository.findAll).toHaveBeenCalledWith(true);
   });
 
   it('returns the repository result from findOne', async () => {

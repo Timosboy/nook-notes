@@ -9,8 +9,10 @@ import {
   Patch,
   ParseUUIDPipe,
   Post,
+  Query,
 } from '@nestjs/common';
 import { CreateNoteDto } from './dto/create-note.dto';
+import { ListNotesQuery } from './dto/list-notes.query';
 import { UpdateNoteDto } from './dto/update-note.dto';
 import { Note } from './note.entity';
 import { NotesService } from './notes.service';
@@ -20,8 +22,8 @@ export class NotesController {
   constructor(private readonly notesService: NotesService) {}
 
   @Get()
-  findAll(): Promise<Note[]> {
-    return this.notesService.findAll();
+  findAll(@Query() query: ListNotesQuery): Promise<Note[]> {
+    return this.notesService.findAll(query.archived);
   }
 
   @Get(':id')

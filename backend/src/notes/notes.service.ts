@@ -8,8 +8,8 @@ import { UpdateNoteDto } from './dto/update-note.dto';
 export class NotesService {
   constructor(private readonly notesRepository: NotesRepository) {}
 
-  findAll(): Promise<Note[]> {
-    return this.notesRepository.findAll();
+  findAll(archived = false): Promise<Note[]> {
+    return this.notesRepository.findAll(archived);
   }
 
   async findOne(id: string): Promise<Note> {
