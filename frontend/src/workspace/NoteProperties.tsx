@@ -1,4 +1,4 @@
-import { CalendarBlank, Tag, X, type Icon } from '@phosphor-icons/react'
+import { CalendarBlank, ClockCounterClockwise, Tag, X, type Icon } from '@phosphor-icons/react'
 import { memo, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { CategoryChip } from '../categories/CategoryChip'
@@ -57,6 +57,12 @@ export const NoteProperties = memo(function NoteProperties({ note, categories, o
           {formatDate(note.createdAt)}
         </time>
         {note.archived && <span className="badge">Archived</span>}
+      </Property>
+
+      <Property icon={ClockCounterClockwise} label="Last edited">
+        <time className="property-value" dateTime={note.updatedAt}>
+          {formatDate(note.updatedAt)}
+        </time>
       </Property>
     </dl>
   )

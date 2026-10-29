@@ -2,7 +2,6 @@ import { useSyncExternalStore } from 'react'
 import { flushSync } from 'react-dom'
 
 export type Theme = 'light' | 'dark' | 'reading'
-export type Origin = { x: number; y: number }
 
 const themes: Theme[] = ['light', 'dark', 'reading']
 const themeColors: Record<Theme, string> = {
@@ -38,17 +37,23 @@ function commitTheme(next: Theme) {
   subscribers.forEach((subscriber) => subscriber())
 }
 
-function revealFrom({ x, y }: Origin) {
-  const radius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y))
+const DISSOLVE_OPTIONS = { duration: 750, easing: 'cubic-bezier(0.4, 0, 0.2, 1)', fill: 'both' } as const
 
-  document.documentElement.animate(
-    { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
-    { duration: 650, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', pseudoElement: '::view-transition-new(root)' },
+function dissolve() {
+  const root = document.documentElement
+
+  root.animate(
+    { filter: ['blur(0px)', 'blur(7px)'], transform: ['scale(1)', 'scale(1.012)'] },
+    { ...DISSOLVE_OPTIONS, pseudoElement: '::view-transition-old(root)' },
+  )
+  root.animate(
+    { opacity: [0, 1], filter: ['blur(9px)', 'blur(0px)'], transform: ['scale(1.012)', 'scale(1)'] },
+    { ...DISSOLVE_OPTIONS, pseudoElement: '::view-transition-new(root)' },
   )
 }
 
-function applyTheme(next: Theme, origin?: Origin) {
-  const canAnimate = origin && typeof document.startViewTransition === 'function' && !reducedMotion.matches
+function applyTheme(next: Theme) {
+  const canAnimate = typeof document.startViewTransition === 'function' && !reducedMotion.matches
 
   if (!canAnimate) {
     commitTheme(next)
@@ -59,7 +64,7 @@ function applyTheme(next: Theme, origin?: Origin) {
   root.classList.add('theme-switching')
 
   const transition = document.startViewTransition(() => flushSync(() => commitTheme(next)))
-  transition.ready.then(() => revealFrom(origin)).catch(() => undefined)
+  transition.ready.then(dissolve).catch(() => undefined)
   transition.finished.finally(() => root.classList.remove('theme-switching'))
 }
 
@@ -81,11 +86,11 @@ function getSnapshot() {
 export function useTheme() {
   const currentTheme = useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
 
-  function setTheme(next: Theme, origin?: Origin) {
+  function setTheme(next: Theme) {
     if (!isTheme(next)) return
     userChosen = true
     colorScheme.removeEventListener('change', handleColorSchemeChange)
-    applyTheme(next, origin)
+    applyTheme(next)
 
     try {
       localStorage.setItem('notes-theme', next)
@@ -94,9 +99,9 @@ export function useTheme() {
     }
   }
 
-  function cycleTheme(origin?: Origin) {
+  function cycleTheme() {
     const index = themes.indexOf(currentTheme)
-    setTheme(themes[(index + 1) % themes.length], origin)
+    setTheme(themes[(index + 1) % themes.length])
   }
 
   return { theme: currentTheme, setTheme, cycleTheme }

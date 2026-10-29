@@ -13,6 +13,9 @@ type Props = {
   searchRef: Ref<HTMLInputElement>
   onQueryChange: (query: string) => void
   onSelect: (id: string) => void
+  onTogglePin: (note: Note) => void
+  onToggleArchive: (note: Note) => void
+  onDelete: (note: Note) => void
   filter?: ReactNode
   children?: ReactNode
   listKey?: string
@@ -34,6 +37,9 @@ export function NoteListPane({
   searchRef,
   onQueryChange,
   onSelect,
+  onTogglePin,
+  onToggleArchive,
+  onDelete,
   filter,
   children,
   listKey,
@@ -49,6 +55,9 @@ export function NoteListPane({
       order={order}
       selected={note.id === selectedId}
       onSelect={() => onSelect(note.id)}
+      onTogglePin={onTogglePin}
+      onToggleArchive={onToggleArchive}
+      onDelete={onDelete}
     />
   )
 

@@ -1078,6 +1078,18 @@
   color: color-mix(in srgb, var(--tone) 72%, var(--text-strong));
 }
 
+.tone-tile.has-emoji {
+  background: transparent;
+}
+
+.document-icon.has-emoji {
+  transition: background-color 150ms;
+}
+
+.document-icon.has-emoji:hover {
+  background: var(--surface-muted);
+}
+
 .property {
   min-height: 34px;
 }

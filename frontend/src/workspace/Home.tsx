@@ -41,7 +41,10 @@ export function Home({ leading, notes, archivedCount, onOpen, onCreate, onSearch
             {recent.map((note) => (
               <li key={note.id}>
                 <button className="recent-card" onClick={() => onOpen(note)}>
-                  <span className="recent-icon tone-tile" style={toneStyle(note.categories[0]?.color)}>
+                  <span
+                    className={`recent-icon tone-tile${note.emoji ? ' has-emoji' : ''}`}
+                    style={toneStyle(note.categories[0]?.color)}
+                  >
                     {note.emoji ? <span className="recent-emoji">{note.emoji}</span> : <NotePencil size={16} weight="duotone" />}
                   </span>
                   <span className="recent-title">{note.title}</span>

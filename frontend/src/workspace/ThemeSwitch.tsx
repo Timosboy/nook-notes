@@ -2,7 +2,7 @@ import { useId, type KeyboardEvent } from 'react'
 import { BookOpenText, Moon, Sun } from '@phosphor-icons/react'
 import { AnimatePresence, motion } from 'motion/react'
 import { ease, spring } from '../lib/motion'
-import { useTheme, type Origin, type Theme } from '../lib/useTheme'
+import { useTheme, type Theme } from '../lib/useTheme'
 import './theme.css'
 
 const options: { theme: Theme; label: string; Icon: typeof Sun }[] = [
@@ -10,11 +10,6 @@ const options: { theme: Theme; label: string; Icon: typeof Sun }[] = [
   { theme: 'dark', label: 'Night', Icon: Moon },
   { theme: 'reading', label: 'Reading', Icon: BookOpenText },
 ]
-
-function originOf(element: HTMLElement): Origin {
-  const { left, top, width, height } = element.getBoundingClientRect()
-  return { x: left + width / 2, y: top + height / 2 }
-}
 
 export function ThemeSwitch() {
   const { theme, setTheme } = useTheme()
@@ -27,9 +22,8 @@ export function ThemeSwitch() {
     const focused = (event.target as HTMLElement).closest<HTMLElement>('[data-theme-option]')
     const index = options.findIndex((option) => option.theme === (focused?.dataset.themeOption ?? theme))
     const next = options[(index + direction + options.length) % options.length]
-    const target = document.querySelector<HTMLButtonElement>(`[data-theme-option="${next.theme}"]`)
-    setTheme(next.theme, target ? originOf(target) : undefined)
-    target?.focus()
+    setTheme(next.theme)
+    document.querySelector<HTMLButtonElement>(`[data-theme-option="${next.theme}"]`)?.focus()
   }
 
   return (
@@ -47,7 +41,7 @@ export function ThemeSwitch() {
             aria-checked={selected}
             title={label}
             data-theme-option={optionTheme}
-            onClick={(event) => setTheme(optionTheme, originOf(event.currentTarget))}
+            onClick={() => setTheme(optionTheme)}
           >
             {selected && <motion.span layoutId={thumbId} className="theme-thumb" transition={spring} />}
             <Icon className="theme-icon" size={15} weight="bold" />
@@ -68,7 +62,7 @@ export function ThemeCycleButton() {
       type="button"
       aria-label="Change theme"
       title="Change theme"
-      onClick={(event) => cycleTheme(originOf(event.currentTarget))}
+      onClick={cycleTheme}
     >
       <AnimatePresence mode="wait" initial={false}>
         <motion.span

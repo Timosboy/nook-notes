@@ -150,7 +150,7 @@ export function NoteEditor({
       >
         <div className="document-icon-wrap">
           <button
-            className="document-icon tone-tile"
+            className={`document-icon tone-tile${note.emoji ? ' has-emoji' : ''}`}
             style={toneStyle(accent)}
             aria-label="Change icon"
             aria-haspopup="dialog"
