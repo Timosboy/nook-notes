@@ -1,5 +1,6 @@
 import { Archive, ArrowLeft, ArrowUUpLeft, CaretRight, Trash } from '@phosphor-icons/react'
 import { timeAgo } from '../lib/format'
+import { countWords, readingMinutes } from '../lib/stats'
 import type { SaveStatus } from '../lib/useAutosave'
 import type { Note } from '../notes/types'
 
@@ -12,6 +13,7 @@ const STATUS_LABEL: Record<SaveStatus, string> = {
 type Props = {
   note: Note
   title: string
+  content: string
   section: string
   status: SaveStatus | 'invalid'
   onBack: () => void
@@ -22,6 +24,7 @@ type Props = {
 export function EditorTopbar({
   note,
   title,
+  content,
   section,
   status,
   onBack,
@@ -29,6 +32,7 @@ export function EditorTopbar({
   onDelete,
 }: Props) {
   const archiveLabel = note.archived ? 'Restore note' : 'Archive note'
+  const words = countWords(content)
 
   return (
     <header className="editor-topbar">
@@ -46,6 +50,9 @@ export function EditorTopbar({
         <span className={`save-status is-${status}`} aria-live="polite">
           <span className="save-dot" aria-hidden="true" />
           {status === 'invalid' ? 'Title required' : STATUS_LABEL[status]}
+        </span>
+        <span className="topbar-stats">
+          {words} {words === 1 ? 'word' : 'words'}{words > 0 ? ` · ${readingMinutes(words)} min read` : ''}
         </span>
         <time className="topbar-edited" dateTime={note.updatedAt}>
           Edited {timeAgo(note.updatedAt).toLowerCase()}

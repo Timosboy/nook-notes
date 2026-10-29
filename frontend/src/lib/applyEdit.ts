@@ -1,4 +1,4 @@
-import type { Edit } from './listEditing'
+export type Edit = { from: number, to: number, insert: string, caret: number }
 
 export function applyEdit(textarea: HTMLTextAreaElement, edit: Edit) {
   textarea.setSelectionRange(edit.from, edit.to)

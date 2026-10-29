@@ -1,4 +1,4 @@
-export type Edit = { from: number, to: number, insert: string, caret: number }
+import type { Edit } from './applyEdit'
 
 type ListPrefix = {
   value: string
