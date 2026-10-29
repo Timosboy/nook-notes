@@ -1,23 +1,17 @@
 import { useState } from 'react'
-import { Archive, ArrowLeft, ArrowUUpLeft, Trash, X } from '@phosphor-icons/react'
-import { CategoryChip } from '../categories/CategoryChip'
-import { CategoryPicker } from '../categories/CategoryPicker'
+import { NotePencil } from '@phosphor-icons/react'
 import type { Category } from '../categories/types'
 import { ConfirmDialog } from '../components/ConfirmDialog'
-import { formatDate } from '../lib/format'
-import { useAutosave, type SaveStatus } from '../lib/useAutosave'
+import { useAutosave } from '../lib/useAutosave'
 import type { Note, NoteInput } from '../notes/types'
+import { EditorTopbar } from './EditorTopbar'
+import { NoteProperties } from './NoteProperties'
 
 const TITLE_MAX_LENGTH = 120
 
-const STATUS_LABEL: Record<SaveStatus, string> = {
-  saved: 'Saved',
-  saving: 'Saving...',
-  error: 'Not saved',
-}
-
 type Props = {
   note: Note
+  section: string
   fresh: boolean
   onSave: (input: NoteInput) => Promise<void>
   onDelete: () => Promise<void>
@@ -30,6 +24,7 @@ type Props = {
 
 export function NoteEditor({
   note,
+  section,
   fresh,
   onSave,
   onDelete,
@@ -44,45 +39,53 @@ export function NoteEditor({
   const [confirmingDelete, setConfirmingDelete] = useState(false)
 
   const hasTitle = title.trim().length > 0
-  const archiveLabel = note.archived ? 'Restore note' : 'Archive note'
   const status = useAutosave({ title: title.trim(), content }, onSave, { enabled: hasTitle })
+  const accent = note.categories[0]?.color ?? 'gray'
 
   return (
-    <article className="document">
-      <div className="document-bar">
-        <button className="icon-button back-button" aria-label="Back to notes" onClick={onBack}>
-          <ArrowLeft size={16} weight="bold" />
-        </button>
-        <time className="document-date" dateTime={note.updatedAt}>
-          {formatDate(note.updatedAt)}
-        </time>
-        {note.archived && <span className="badge">Archived</span>}
-        <div className="document-tools">
-          <span className={`save-status is-${hasTitle ? status : 'error'}`} aria-live="polite">
-            {hasTitle ? STATUS_LABEL[status] : 'Title required'}
-          </span>
-          <button
-            className="icon-button"
-            aria-label={archiveLabel}
-            title={archiveLabel}
-            onClick={onToggleArchive}
-          >
-            {note.archived ? (
-              <ArrowUUpLeft size={16} weight="bold" />
-            ) : (
-              <Archive size={16} weight="bold" />
-            )}
-          </button>
-          <button
-            className="icon-button icon-button-danger"
-            aria-label="Delete note"
-            title="Delete note"
-            onClick={() => setConfirmingDelete(true)}
-          >
-            <Trash size={16} weight="bold" />
-          </button>
-        </div>
-      </div>
+    <>
+      <EditorTopbar
+        note={note}
+        title={title}
+        section={section}
+        status={hasTitle ? status : 'invalid'}
+        onBack={onBack}
+        onToggleArchive={onToggleArchive}
+        onDelete={() => setConfirmingDelete(true)}
+      />
+
+      <article className="document">
+        <span className={`document-icon chip-${accent}`} aria-hidden="true">
+          <NotePencil size={26} weight="duotone" />
+        </span>
+
+        <textarea
+          className="document-title"
+          aria-label="Title"
+          placeholder="Untitled"
+          rows={1}
+          maxLength={TITLE_MAX_LENGTH}
+          value={title}
+          onChange={(event) => setTitle(event.target.value.replace(/\n/g, ''))}
+          onFocus={(event) => fresh && event.target.select()}
+          autoFocus={fresh}
+        />
+
+        <NoteProperties
+          note={note}
+          categories={categories}
+          onToggleCategory={onToggleCategory}
+          onCreateCategory={onCreateCategory}
+        />
+
+        <textarea
+          className="document-body"
+          aria-label="Content"
+          placeholder="Start writing..."
+          value={content}
+          onChange={(event) => setContent(event.target.value)}
+        />
+      </article>
 
       <ConfirmDialog
         open={confirmingDelete}
@@ -92,51 +95,6 @@ export function NoteEditor({
         onConfirm={onDelete}
         onClose={() => setConfirmingDelete(false)}
       />
-
-      <textarea
-        className="document-title"
-        aria-label="Title"
-        placeholder="Untitled"
-        rows={1}
-        maxLength={TITLE_MAX_LENGTH}
-        value={title}
-        onChange={(event) => setTitle(event.target.value.replace(/\n/g, ''))}
-        onFocus={(event) => fresh && event.target.select()}
-        autoFocus={fresh}
-      />
-
-      <dl className="properties">
-        <div className="property">
-          <dt>Categories</dt>
-          <dd className="chips">
-            {note.categories.map((category) => (
-              <CategoryChip key={category.id} category={category}>
-                <button
-                  className="chip-remove"
-                  aria-label={`Remove ${category.name}`}
-                  onClick={() => onToggleCategory(category)}
-                >
-                  <X size={10} weight="bold" />
-                </button>
-              </CategoryChip>
-            ))}
-            <CategoryPicker
-              categories={categories}
-              selectedIds={note.categories.map(({ id }) => id)}
-              onToggle={onToggleCategory}
-              onCreate={onCreateCategory}
-            />
-          </dd>
-        </div>
-      </dl>
-
-      <textarea
-        className="document-body"
-        aria-label="Content"
-        placeholder="Start writing..."
-        value={content}
-        onChange={(event) => setContent(event.target.value)}
-      />
-    </article>
+    </>
   )
 }
