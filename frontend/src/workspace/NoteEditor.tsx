@@ -254,6 +254,7 @@ export function NoteEditor({
           <RichEditor
             initialContent={content}
             onChange={changeContent}
+            onPickImage={openImagePicker}
             onPasteImages={(files, position) => void addNoteImages(imageFiles(files), position)}
             onDropImages={(files, position) => void addNoteImages(imageFiles(files), position)}
             onImageClick={(images, index) => {

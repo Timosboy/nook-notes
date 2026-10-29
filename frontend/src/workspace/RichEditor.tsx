@@ -6,6 +6,7 @@ import { Placeholder } from '@tiptap/extensions'
 import { EditorContent, useEditor, type Editor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import { resolveImageUrl } from '../lib/imageUrl'
+import { SLASH_PICK_IMAGE_EVENT, SlashCommand } from './slashCommand'
 import './richeditor.css'
 
 export type EditorImage = { src: string; alt: string }
@@ -16,12 +17,13 @@ type Props = {
   onPasteImages: (files: File[], position: number) => void
   onDropImages: (files: File[], position: number) => void
   onImageClick: (images: EditorImage[], index: number) => void
+  onPickImage: () => void
   onReady: (editor: Editor | null) => void
   onFocus: () => void
   onBlur: () => void
 }
 
-export function RichEditor({ initialContent, onChange, onPasteImages, onDropImages, onImageClick, onReady, onFocus, onBlur }: Props) {
+export function RichEditor({ initialContent, onChange, onPasteImages, onDropImages, onImageClick, onPickImage, onReady, onFocus, onBlur }: Props) {
   const changeRef = useRef(onChange)
   const pasteRef = useRef(onPasteImages)
   const dropRef = useRef(onDropImages)
@@ -50,7 +52,11 @@ export function RichEditor({ initialContent, onChange, onPasteImages, onDropImag
       Markdown.configure({ markedOptions: { breaks: true } }),
       TaskList,
       TaskItem.configure({ nested: true }),
-      Placeholder.configure({ placeholder: 'Start writing...' }),
+      Placeholder.configure({
+        includeChildren: true,
+        placeholder: ({ editor: current }) => current.isEmpty ? 'Start writing...' : "Type '/' for commands",
+      }),
+      SlashCommand,
     ],
     shouldRerenderOnTransaction: false,
     editorProps: {
@@ -124,6 +130,11 @@ export function RichEditor({ initialContent, onChange, onPasteImages, onDropImag
     dropRef.current = onDropImages
     imageClickRef.current = onImageClick
   }, [onChange, onPasteImages, onDropImages, onImageClick])
+
+  useEffect(() => {
+    document.addEventListener(SLASH_PICK_IMAGE_EVENT, onPickImage)
+    return () => document.removeEventListener(SLASH_PICK_IMAGE_EVENT, onPickImage)
+  }, [onPickImage])
 
   useEffect(() => {
     onReady(editor)
