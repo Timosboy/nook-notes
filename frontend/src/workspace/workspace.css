@@ -454,3 +454,9 @@
     display: none;
   }
 }
+
+.sidebar-top {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
