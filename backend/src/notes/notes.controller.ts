@@ -1,4 +1,11 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Post,
+} from '@nestjs/common';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { Note } from './note.entity';
 import { NotesService } from './notes.service';
@@ -10,6 +17,11 @@ export class NotesController {
   @Get()
   findAll(): Promise<Note[]> {
     return this.notesService.findAll();
+  }
+
+  @Get(':id')
+  findOne(@Param('id', ParseUUIDPipe) id: string): Promise<Note> {
+    return this.notesService.findOne(id);
   }
 
   @Post()
