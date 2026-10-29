@@ -16,9 +16,11 @@ export class NotesRepository {
     const query = this.notes
       .createQueryBuilder('note')
       .leftJoinAndSelect('note.categories', 'category')
+      .leftJoinAndSelect('note.images', 'image')
       .where('note.archived = :archived', { archived })
       .orderBy('note.updatedAt', 'DESC')
-      .addOrderBy('category.name', 'ASC');
+      .addOrderBy('category.name', 'ASC')
+      .addOrderBy('image.createdAt', 'ASC');
 
     if (categoryId) {
       query.andWhere(
@@ -38,13 +40,15 @@ export class NotesRepository {
   findById(id: string): Promise<Note | null> {
     return this.notes.findOne({
       where: { id },
-      relations: { categories: true },
-      order: { categories: { name: 'ASC' } },
+      relations: { categories: true, images: true },
+      order: { categories: { name: 'ASC' }, images: { createdAt: 'ASC' } },
     });
   }
 
   create(note: NewNote): Promise<Note> {
-    return this.notes.save(this.notes.create({ ...note, categories: [] }));
+    return this.notes.save(
+      this.notes.create({ ...note, categories: [], images: [] }),
+    );
   }
 
   save(note: Note): Promise<Note> {

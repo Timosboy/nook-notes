@@ -10,5 +10,6 @@ import { NotesService } from './notes.service';
   imports: [TypeOrmModule.forFeature([Note]), CategoriesModule],
   controllers: [NotesController],
   providers: [NotesService, NotesRepository],
+  exports: [NotesService],
 })
 export class NotesModule {}
