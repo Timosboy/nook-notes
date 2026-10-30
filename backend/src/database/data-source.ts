@@ -11,6 +11,7 @@ export const dataSourceOptions: DataSourceOptions = {
   username: database.user,
   password: database.password,
   database: database.name,
+  ssl: database.ssl ? { rejectUnauthorized: false } : false,
   entities: [__dirname + '/../**/*.entity{.ts,.js}'],
   migrations: [__dirname + '/migrations/*{.ts,.js}'],
   synchronize: false,

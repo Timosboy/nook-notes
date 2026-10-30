@@ -10,5 +10,6 @@ export default () => ({
     user: process.env.DB_USER ?? 'notes',
     password: process.env.DB_PASSWORD ?? 'notes',
     name: process.env.DB_NAME ?? 'notes',
+    ssl: process.env.DB_SSL === 'true',
   },
 });
