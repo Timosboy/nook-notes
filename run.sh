@@ -31,7 +31,7 @@ Sets everything up and starts the app with one command:
   database (Docker), dependencies, migrations, demo data, API and web app.
 
 Options:
-  --no-seed    do not load the demo notes into an empty database
+  --no-seed    do not load the sample notes into an empty database
   --lan        also open the app to your local network, to try it on a phone
   --down       stop the database container and exit (data is kept)
   -h, --help   show this help
@@ -210,7 +210,8 @@ wait_for "web app is up" 60 curl -sf "http://localhost:$WEB_PORT" \
 printf '\n%sNook is running%s\n' "$BOLD" "$RESET"
 printf '  App  http://localhost:%s\n' "$WEB_PORT"
 printf '  API  http://localhost:%s/api\n' "$API_PORT"
-printf '  Demo login  demo@nook.app / nook-demo-2026\n'
+printf '  Sign in     ensolvers@test.com / ensolvers-2026\n'
+printf '  or          demo@nook.app / nook-demo-2026\n'
 if [ -n "$LAN_IP" ]; then
   printf '\n%sOn your phone (same Wi-Fi):%s\n  http://%s:%s\n' "$BOLD" "$RESET" "$LAN_IP" "$WEB_PORT"
 fi

@@ -6,6 +6,12 @@ import {
   DEMO_PASSWORD,
   DEMO_NAME,
 } from '../users/demo-user';
+import {
+  REVIEWER_USER_ID,
+  REVIEWER_EMAIL,
+  REVIEWER_PASSWORD,
+  REVIEWER_NAME,
+} from '../users/reviewer-user';
 import dataSource from './data-source';
 import { Category } from '../categories/category.entity';
 import { Note } from '../notes/note.entity';
@@ -80,26 +86,41 @@ const NOTES: SeedNote[] = [
   },
 ];
 
-async function seed() {
-  await dataSource.initialize();
+const ACCOUNTS = [
+  {
+    id: DEMO_USER_ID,
+    email: DEMO_EMAIL,
+    name: DEMO_NAME,
+    password: DEMO_PASSWORD,
+  },
+  {
+    id: REVIEWER_USER_ID,
+    email: REVIEWER_EMAIL,
+    name: REVIEWER_NAME,
+    password: REVIEWER_PASSWORD,
+  },
+];
 
+type Account = (typeof ACCOUNTS)[number];
+
+async function seedAccount(account: Account) {
   const users = dataSource.getRepository(User);
-  let demo = await users.findOneBy({ email: DEMO_EMAIL });
-  if (!demo) {
-    demo = await users.save(
+  let user = await users.findOneBy({ email: account.email });
+  if (!user) {
+    user = await users.save(
       users.create({
-        id: DEMO_USER_ID,
-        email: DEMO_EMAIL,
-        name: DEMO_NAME,
-        passwordHash: await hash(DEMO_PASSWORD, 10),
+        id: account.id,
+        email: account.email,
+        name: account.name,
+        passwordHash: await hash(account.password, 10),
       }),
     );
   }
-  const userId = demo.id;
+  const userId = user.id;
   const notes = dataSource.getRepository(Note);
 
   if ((await notes.countBy({ userId })) > 0) {
-    console.log('Seed skipped: the demo user already has notes');
+    console.log(`Seed skipped: ${account.email} already has notes`);
     return;
   }
 
@@ -130,8 +151,13 @@ async function seed() {
   }
 
   console.log(
-    `Seeded ${NOTES.length} notes and ${CATEGORIES.length} categories`,
+    `Seeded ${NOTES.length} notes and ${CATEGORIES.length} categories for ${account.email}`,
   );
+}
+
+async function seed() {
+  await dataSource.initialize();
+  for (const account of ACCOUNTS) await seedAccount(account);
 }
 
 seed()
