@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Category } from './category.entity';
 
-export type NewCategory = Pick<Category, 'name'> &
+export type NewCategory = Pick<Category, 'userId' | 'name'> &
   Partial<Pick<Category, 'color'>>;
 
 export type CategoryChanges = Partial<Pick<Category, 'name' | 'color'>>;
@@ -15,18 +15,19 @@ export class CategoriesRepository {
     private readonly categories: Repository<Category>,
   ) {}
 
-  findAll(): Promise<Category[]> {
-    return this.categories.find({ order: { name: 'ASC' } });
+  findAll(userId: string): Promise<Category[]> {
+    return this.categories.find({ where: { userId }, order: { name: 'ASC' } });
   }
 
-  findById(id: string): Promise<Category | null> {
-    return this.categories.findOneBy({ id });
+  findById(userId: string, id: string): Promise<Category | null> {
+    return this.categories.findOneBy({ id, userId });
   }
 
-  findByName(name: string): Promise<Category | null> {
+  findByName(userId: string, name: string): Promise<Category | null> {
     return this.categories
       .createQueryBuilder('category')
-      .where('LOWER(category.name) = LOWER(:name)', { name })
+      .where('category.userId = :userId', { userId })
+      .andWhere('LOWER(category.name) = LOWER(:name)', { name })
       .getOne();
   }
 

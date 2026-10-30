@@ -23,10 +23,11 @@ export class ImagesService {
   ) {}
 
   async upload(
+    userId: string,
     noteId: string,
     file?: Express.Multer.File,
   ): Promise<NoteImageMetadata> {
-    await this.notesService.findOne(noteId);
+    await this.notesService.findOne(userId, noteId);
 
     if (!file) {
       throw new BadRequestException('No image was uploaded');
@@ -59,7 +60,12 @@ export class ImagesService {
     return metadata(image);
   }
 
-  async findOne(noteId: string, id: string): Promise<NoteImage> {
+  async findOne(
+    userId: string,
+    noteId: string,
+    id: string,
+  ): Promise<NoteImage> {
+    await this.notesService.findOne(userId, noteId);
     const image = await this.imagesRepository.findById(noteId, id);
 
     if (!image) {
@@ -69,8 +75,8 @@ export class ImagesService {
     return image;
   }
 
-  async remove(noteId: string, id: string): Promise<void> {
-    const image = await this.findOne(noteId, id);
+  async remove(userId: string, noteId: string, id: string): Promise<void> {
+    const image = await this.findOne(userId, noteId, id);
 
     await this.imagesRepository.remove(image);
   }

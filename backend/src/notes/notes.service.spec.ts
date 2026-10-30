@@ -44,57 +44,109 @@ describe('NotesService', () => {
   });
 
   it('lists active notes by default', async () => {
-    const notes = [{ id: '1', title: 'Note', content: '' }];
+    const notes = [{ id: '1', title: 'Note', userId: 'user-id', content: '' }];
     notesRepository.findAll.mockResolvedValue(notes);
 
-    await expect(service.findAll()).resolves.toBe(notes);
-    expect(notesRepository.findAll).toHaveBeenCalledWith(false, undefined);
+    await expect(service.findAll('user-id')).resolves.toBe(notes);
+    expect(notesRepository.findAll).toHaveBeenCalledWith(
+      'user-id',
+      false,
+      undefined,
+    );
   });
 
   it('passes true when listing archived notes', async () => {
-    const notes = [{ id: '1', title: 'Note', content: '' }];
+    const notes = [{ id: '1', title: 'Note', userId: 'user-id', content: '' }];
     notesRepository.findAll.mockResolvedValue(notes);
 
-    await expect(service.findAll(true)).resolves.toBe(notes);
-    expect(notesRepository.findAll).toHaveBeenCalledWith(true, undefined);
+    await expect(service.findAll('user-id', true)).resolves.toBe(notes);
+    expect(notesRepository.findAll).toHaveBeenCalledWith(
+      'user-id',
+      true,
+      undefined,
+    );
   });
 
   it('passes the category when listing notes', async () => {
-    const notes = [{ id: '1', title: 'Note', content: '' }];
+    const notes = [{ id: '1', title: 'Note', userId: 'user-id', content: '' }];
     const categoryId = '3fa85f64-5717-4562-b3fc-2c963f66afa6';
     notesRepository.findAll.mockResolvedValue(notes);
 
-    await expect(service.findAll(false, categoryId)).resolves.toBe(notes);
-    expect(notesRepository.findAll).toHaveBeenCalledWith(false, categoryId);
+    await expect(service.findAll('user-id', false, categoryId)).resolves.toBe(
+      notes,
+    );
+    expect(notesRepository.findAll).toHaveBeenCalledWith(
+      'user-id',
+      false,
+      categoryId,
+    );
   });
 
   it('returns the repository result from findOne', async () => {
     const note = {
       id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+      userId: 'user-id',
       title: 'Note',
       content: '',
     };
     notesRepository.findById.mockResolvedValue(note);
 
-    await expect(service.findOne(note.id)).resolves.toBe(note);
+    await expect(service.findOne('user-id', note.id)).resolves.toBe(note);
   });
 
   it('throws NotFoundException when findOne cannot find a note', async () => {
     notesRepository.findById.mockResolvedValue(null);
 
     await expect(
-      service.findOne('3fa85f64-5717-4562-b3fc-2c963f66afa6'),
+      service.findOne('user-id', '3fa85f64-5717-4562-b3fc-2c963f66afa6'),
     ).rejects.toThrow('Note not found');
   });
 
+  it('treats another user note as missing', async () => {
+    notesRepository.findById.mockResolvedValue({
+      id: 'note-id',
+      userId: 'other-user',
+    });
+
+    await expect(service.findOne('user-id', 'note-id')).rejects.toThrow(
+      'Note not found',
+    );
+    await expect(
+      service.update('user-id', 'note-id', { title: 'Changed' }),
+    ).rejects.toThrow(NotFoundException);
+    expect(notesRepository.findById).toHaveBeenCalledWith('user-id', 'note-id');
+    expect(notesRepository.save).not.toHaveBeenCalled();
+  });
+
+  it('rejects adding another user category', async () => {
+    notesRepository.findById.mockResolvedValue({
+      id: 'note-id',
+      userId: 'user-id',
+      categories: [],
+    });
+    categoriesService.findOne.mockRejectedValue(
+      new NotFoundException('Category not found'),
+    );
+
+    await expect(
+      service.addCategory('user-id', 'note-id', 'other-category'),
+    ).rejects.toThrow('Category not found');
+    expect(categoriesService.findOne).toHaveBeenCalledWith(
+      'user-id',
+      'other-category',
+    );
+    expect(notesRepository.save).not.toHaveBeenCalled();
+  });
+
   it('passes title and content to the repository when creating', async () => {
-    const note = { id: '1', title: 'Note', content: 'Text' };
+    const note = { id: '1', title: 'Note', userId: 'user-id', content: 'Text' };
     notesRepository.create.mockResolvedValue(note);
 
     await expect(
-      service.create({ title: 'Note', content: 'Text' }),
+      service.create('user-id', { title: 'Note', content: 'Text' }),
     ).resolves.toBe(note);
     expect(notesRepository.create).toHaveBeenCalledWith({
+      userId: 'user-id',
       title: 'Note',
       content: 'Text',
       emoji: null,
@@ -102,9 +154,10 @@ describe('NotesService', () => {
   });
 
   it('uses empty content when creating without content', async () => {
-    await service.create({ title: 'Note' });
+    await service.create('user-id', { title: 'Note' });
 
     expect(notesRepository.create).toHaveBeenCalledWith({
+      userId: 'user-id',
       title: 'Note',
       content: '',
       emoji: null,
@@ -112,13 +165,20 @@ describe('NotesService', () => {
   });
 
   it('creates a note with an emoji', async () => {
-    const note = { id: '1', title: 'Note', content: '', emoji: '🚀' };
+    const note = {
+      id: '1',
+      title: 'Note',
+      content: '',
+      userId: 'user-id',
+      emoji: '🚀',
+    };
     notesRepository.create.mockResolvedValue(note);
 
-    await expect(service.create({ title: 'Note', emoji: '🚀' })).resolves.toBe(
-      note,
-    );
+    await expect(
+      service.create('user-id', { title: 'Note', emoji: '🚀' }),
+    ).resolves.toBe(note);
     expect(notesRepository.create).toHaveBeenCalledWith({
+      userId: 'user-id',
       title: 'Note',
       content: '',
       emoji: '🚀',
@@ -128,17 +188,19 @@ describe('NotesService', () => {
   it('updates only the given fields', async () => {
     const note = {
       id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+      userId: 'user-id',
       title: 'Old title',
       content: 'Existing content',
     };
     notesRepository.findById.mockResolvedValue(note);
     notesRepository.save.mockResolvedValue(note);
 
-    await expect(service.update(note.id, { title: 'New title' })).resolves.toBe(
-      note,
-    );
+    await expect(
+      service.update('user-id', note.id, { title: 'New title' }),
+    ).resolves.toBe(note);
     expect(note).toEqual({
       id: note.id,
+      userId: 'user-id',
       title: 'New title',
       content: 'Existing content',
     });
@@ -149,7 +211,7 @@ describe('NotesService', () => {
     notesRepository.findById.mockResolvedValue(null);
 
     await expect(
-      service.update('3fa85f64-5717-4562-b3fc-2c963f66afa6', {
+      service.update('user-id', '3fa85f64-5717-4562-b3fc-2c963f66afa6', {
         title: 'New title',
       }),
     ).rejects.toThrow(NotFoundException);
@@ -159,6 +221,7 @@ describe('NotesService', () => {
   it('changes and clears a note emoji', async () => {
     const note = {
       id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+      userId: 'user-id',
       title: 'Note',
       content: '',
       emoji: '🚀',
@@ -166,10 +229,10 @@ describe('NotesService', () => {
     notesRepository.findById.mockResolvedValue(note);
     notesRepository.save.mockResolvedValue(note);
 
-    await service.update(note.id, { emoji: '🌿' });
+    await service.update('user-id', note.id, { emoji: '🌿' });
     expect(note.emoji).toBe('🌿');
 
-    await service.update(note.id, { emoji: null });
+    await service.update('user-id', note.id, { emoji: null });
     expect(note.emoji).toBeNull();
     expect(notesRepository.save).toHaveBeenCalledTimes(2);
   });
@@ -177,6 +240,7 @@ describe('NotesService', () => {
   it('archives an existing note', async () => {
     const note = {
       id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+      userId: 'user-id',
       title: 'Note',
       content: '',
       archived: false,
@@ -185,7 +249,7 @@ describe('NotesService', () => {
     notesRepository.findById.mockResolvedValue(note);
     notesRepository.save.mockResolvedValue(note);
 
-    await expect(service.archive(note.id)).resolves.toBe(note);
+    await expect(service.archive('user-id', note.id)).resolves.toBe(note);
     expect(note.archived).toBe(true);
     expect(note.pinned).toBe(false);
     expect(notesRepository.save).toHaveBeenCalledWith(note);
@@ -194,6 +258,7 @@ describe('NotesService', () => {
   it('unarchives an existing note', async () => {
     const note = {
       id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+      userId: 'user-id',
       title: 'Note',
       content: '',
       archived: true,
@@ -201,7 +266,7 @@ describe('NotesService', () => {
     notesRepository.findById.mockResolvedValue(note);
     notesRepository.save.mockResolvedValue(note);
 
-    await expect(service.unarchive(note.id)).resolves.toBe(note);
+    await expect(service.unarchive('user-id', note.id)).resolves.toBe(note);
     expect(note.archived).toBe(false);
     expect(notesRepository.save).toHaveBeenCalledWith(note);
   });
@@ -210,7 +275,7 @@ describe('NotesService', () => {
     notesRepository.findById.mockResolvedValue(null);
 
     await expect(
-      service.archive('3fa85f64-5717-4562-b3fc-2c963f66afa6'),
+      service.archive('user-id', '3fa85f64-5717-4562-b3fc-2c963f66afa6'),
     ).rejects.toThrow(NotFoundException);
     expect(notesRepository.save).not.toHaveBeenCalled();
   });
@@ -218,6 +283,7 @@ describe('NotesService', () => {
   it('pins an active note', async () => {
     const note = {
       id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+      userId: 'user-id',
       title: 'Note',
       content: '',
       archived: false,
@@ -226,13 +292,18 @@ describe('NotesService', () => {
     notesRepository.findById.mockResolvedValueOnce({ ...note, pinned: false });
     notesRepository.setPinned.mockResolvedValue(note);
 
-    await expect(service.pin(note.id)).resolves.toBe(note);
-    expect(notesRepository.setPinned).toHaveBeenCalledWith(note.id, true);
+    await expect(service.pin('user-id', note.id)).resolves.toBe(note);
+    expect(notesRepository.setPinned).toHaveBeenCalledWith(
+      'user-id',
+      note.id,
+      true,
+    );
   });
 
   it('unpins a note', async () => {
     const note = {
       id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+      userId: 'user-id',
       title: 'Note',
       content: '',
       archived: false,
@@ -241,13 +312,18 @@ describe('NotesService', () => {
     notesRepository.findById.mockResolvedValue(note);
     notesRepository.setPinned.mockResolvedValue(note);
 
-    await expect(service.unpin(note.id)).resolves.toBe(note);
-    expect(notesRepository.setPinned).toHaveBeenCalledWith(note.id, false);
+    await expect(service.unpin('user-id', note.id)).resolves.toBe(note);
+    expect(notesRepository.setPinned).toHaveBeenCalledWith(
+      'user-id',
+      note.id,
+      false,
+    );
   });
 
   it('rejects pinning an archived note', async () => {
     const note = {
       id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+      userId: 'user-id',
       title: 'Note',
       content: '',
       archived: true,
@@ -255,8 +331,10 @@ describe('NotesService', () => {
     };
     notesRepository.findById.mockResolvedValue(note);
 
-    await expect(service.pin(note.id)).rejects.toThrow(BadRequestException);
-    await expect(service.pin(note.id)).rejects.toThrow(
+    await expect(service.pin('user-id', note.id)).rejects.toThrow(
+      BadRequestException,
+    );
+    await expect(service.pin('user-id', note.id)).rejects.toThrow(
       'Archived notes cannot be pinned',
     );
     expect(notesRepository.setPinned).not.toHaveBeenCalled();
@@ -266,15 +344,16 @@ describe('NotesService', () => {
     notesRepository.findById.mockResolvedValue(null);
 
     await expect(
-      service.pin('3fa85f64-5717-4562-b3fc-2c963f66afa6'),
+      service.pin('user-id', '3fa85f64-5717-4562-b3fc-2c963f66afa6'),
     ).rejects.toThrow('Note not found');
     expect(notesRepository.setPinned).not.toHaveBeenCalled();
   });
 
   it('adds a category to a note', async () => {
-    const category = { id: 'category-id', name: 'Work' };
+    const category = { id: 'category-id', userId: 'user-id', name: 'Work' };
     const note = {
       id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+      userId: 'user-id',
       title: 'Note',
       content: '',
       categories: [],
@@ -283,15 +362,18 @@ describe('NotesService', () => {
     categoriesService.findOne.mockResolvedValue(category);
     notesRepository.save.mockResolvedValue(note);
 
-    await expect(service.addCategory(note.id, category.id)).resolves.toBe(note);
+    await expect(
+      service.addCategory('user-id', note.id, category.id),
+    ).resolves.toBe(note);
     expect(note.categories).toEqual([category]);
     expect(notesRepository.save).toHaveBeenCalledWith(note);
   });
 
   it('does not duplicate or save an existing category', async () => {
-    const category = { id: 'category-id', name: 'Work' };
+    const category = { id: 'category-id', userId: 'user-id', name: 'Work' };
     const note = {
       id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+      userId: 'user-id',
       title: 'Note',
       content: '',
       categories: [category],
@@ -299,15 +381,18 @@ describe('NotesService', () => {
     notesRepository.findById.mockResolvedValue(note);
     categoriesService.findOne.mockResolvedValue(category);
 
-    await expect(service.addCategory(note.id, category.id)).resolves.toBe(note);
+    await expect(
+      service.addCategory('user-id', note.id, category.id),
+    ).resolves.toBe(note);
     expect(note.categories).toEqual([category]);
     expect(notesRepository.save).not.toHaveBeenCalled();
   });
 
   it('removes a category from a note', async () => {
-    const category = { id: 'category-id', name: 'Work' };
+    const category = { id: 'category-id', userId: 'user-id', name: 'Work' };
     const note = {
       id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+      userId: 'user-id',
       title: 'Note',
       content: '',
       categories: [category],
@@ -315,9 +400,9 @@ describe('NotesService', () => {
     notesRepository.findById.mockResolvedValue(note);
     notesRepository.save.mockResolvedValue(note);
 
-    await expect(service.removeCategory(note.id, category.id)).resolves.toBe(
-      note,
-    );
+    await expect(
+      service.removeCategory('user-id', note.id, category.id),
+    ).resolves.toBe(note);
     expect(note.categories).toEqual([]);
     expect(notesRepository.save).toHaveBeenCalledWith(note);
   });
@@ -327,6 +412,7 @@ describe('NotesService', () => {
 
     await expect(
       service.addCategory(
+        'user-id',
         '3fa85f64-5717-4562-b3fc-2c963f66afa6',
         'category-id',
       ),
@@ -338,6 +424,7 @@ describe('NotesService', () => {
   it('throws NotFoundException when adding a missing category', async () => {
     const note = {
       id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+      userId: 'user-id',
       title: 'Note',
       content: '',
       categories: [],
@@ -347,21 +434,22 @@ describe('NotesService', () => {
       new NotFoundException('Category not found'),
     );
 
-    await expect(service.addCategory(note.id, 'category-id')).rejects.toThrow(
-      NotFoundException,
-    );
+    await expect(
+      service.addCategory('user-id', note.id, 'category-id'),
+    ).rejects.toThrow(NotFoundException);
     expect(notesRepository.save).not.toHaveBeenCalled();
   });
 
   it('removes an existing note', async () => {
     const note = {
       id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+      userId: 'user-id',
       title: 'Note',
       content: '',
     };
     notesRepository.findById.mockResolvedValue(note);
 
-    await expect(service.remove(note.id)).resolves.toBeUndefined();
+    await expect(service.remove('user-id', note.id)).resolves.toBeUndefined();
     expect(notesRepository.remove).toHaveBeenCalledWith(note);
   });
 
@@ -369,7 +457,7 @@ describe('NotesService', () => {
     notesRepository.findById.mockResolvedValue(null);
 
     await expect(
-      service.remove('3fa85f64-5717-4562-b3fc-2c963f66afa6'),
+      service.remove('user-id', '3fa85f64-5717-4562-b3fc-2c963f66afa6'),
     ).rejects.toThrow(NotFoundException);
     expect(notesRepository.remove).not.toHaveBeenCalled();
   });

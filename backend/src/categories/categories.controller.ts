@@ -1,3 +1,4 @@
+import { CurrentUser } from '../auth/current-user.decorator';
 import {
   Body,
   Controller,
@@ -20,26 +21,33 @@ export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
   @Get()
-  findAll(): Promise<Category[]> {
-    return this.categoriesService.findAll();
+  findAll(@CurrentUser() userId: string): Promise<Category[]> {
+    return this.categoriesService.findAll(userId);
   }
 
   @Post()
-  create(@Body() dto: CreateCategoryDto): Promise<Category> {
-    return this.categoriesService.create(dto);
+  create(
+    @CurrentUser() userId: string,
+    @Body() dto: CreateCategoryDto,
+  ): Promise<Category> {
+    return this.categoriesService.create(userId, dto);
   }
 
   @Patch(':id')
   update(
+    @CurrentUser() userId: string,
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateCategoryDto,
   ): Promise<Category> {
-    return this.categoriesService.update(id, dto);
+    return this.categoriesService.update(userId, id, dto);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
-    return this.categoriesService.remove(id);
+  remove(
+    @CurrentUser() userId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<void> {
+    return this.categoriesService.remove(userId, id);
   }
 }

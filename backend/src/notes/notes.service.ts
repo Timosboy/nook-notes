@@ -16,51 +16,56 @@ export class NotesService {
     private readonly categoriesService: CategoriesService,
   ) {}
 
-  findAll(archived = false, categoryId?: string): Promise<Note[]> {
-    return this.notesRepository.findAll(archived, categoryId);
+  findAll(
+    userId: string,
+    archived = false,
+    categoryId?: string,
+  ): Promise<Note[]> {
+    return this.notesRepository.findAll(userId, archived, categoryId);
   }
 
-  async findOne(id: string): Promise<Note> {
-    const note = await this.notesRepository.findById(id);
+  async findOne(userId: string, id: string): Promise<Note> {
+    const note = await this.notesRepository.findById(userId, id);
 
-    if (!note) {
+    if (!note || note.userId !== userId) {
       throw new NotFoundException('Note not found');
     }
 
     return note;
   }
 
-  create(dto: CreateNoteDto): Promise<Note> {
+  create(userId: string, dto: CreateNoteDto): Promise<Note> {
     return this.notesRepository.create({
+      userId,
       title: dto.title,
       content: dto.content ?? '',
       emoji: dto.emoji ?? null,
     });
   }
 
-  async update(id: string, dto: UpdateNoteDto): Promise<Note> {
-    const note = await this.findOne(id);
+  async update(userId: string, id: string, dto: UpdateNoteDto): Promise<Note> {
+    const note = await this.findOne(userId, id);
     Object.assign(note, dto);
 
     return this.notesRepository.save(note);
   }
 
-  archive(id: string): Promise<Note> {
-    return this.setArchived(id, true);
+  archive(userId: string, id: string): Promise<Note> {
+    return this.setArchived(userId, id, true);
   }
 
-  unarchive(id: string): Promise<Note> {
-    return this.setArchived(id, false);
+  unarchive(userId: string, id: string): Promise<Note> {
+    return this.setArchived(userId, id, false);
   }
 
-  async pin(id: string): Promise<Note> {
-    const note = await this.findOne(id);
+  async pin(userId: string, id: string): Promise<Note> {
+    const note = await this.findOne(userId, id);
 
     if (note.archived) {
       throw new BadRequestException('Archived notes cannot be pinned');
     }
 
-    const pinned = await this.notesRepository.setPinned(id, true);
+    const pinned = await this.notesRepository.setPinned(userId, id, true);
 
     if (!pinned) {
       throw new NotFoundException('Note not found');
@@ -69,9 +74,9 @@ export class NotesService {
     return pinned;
   }
 
-  async unpin(id: string): Promise<Note> {
-    await this.findOne(id);
-    const unpinned = await this.notesRepository.setPinned(id, false);
+  async unpin(userId: string, id: string): Promise<Note> {
+    await this.findOne(userId, id);
+    const unpinned = await this.notesRepository.setPinned(userId, id, false);
 
     if (!unpinned) {
       throw new NotFoundException('Note not found');
@@ -80,9 +85,13 @@ export class NotesService {
     return unpinned;
   }
 
-  async addCategory(id: string, categoryId: string): Promise<Note> {
-    const note = await this.findOne(id);
-    const category = await this.categoriesService.findOne(categoryId);
+  async addCategory(
+    userId: string,
+    id: string,
+    categoryId: string,
+  ): Promise<Note> {
+    const note = await this.findOne(userId, id);
+    const category = await this.categoriesService.findOne(userId, categoryId);
 
     if (hasCategory(note, categoryId)) {
       return note;
@@ -91,18 +100,26 @@ export class NotesService {
     note.categories = [...note.categories, category];
     await this.notesRepository.save(note);
 
-    return this.findOne(id);
+    return this.findOne(userId, id);
   }
 
-  async removeCategory(id: string, categoryId: string): Promise<Note> {
-    const note = await this.findOne(id);
+  async removeCategory(
+    userId: string,
+    id: string,
+    categoryId: string,
+  ): Promise<Note> {
+    const note = await this.findOne(userId, id);
     note.categories = note.categories.filter(({ id }) => id !== categoryId);
 
     return this.notesRepository.save(note);
   }
 
-  private async setArchived(id: string, archived: boolean): Promise<Note> {
-    const note = await this.findOne(id);
+  private async setArchived(
+    userId: string,
+    id: string,
+    archived: boolean,
+  ): Promise<Note> {
+    const note = await this.findOne(userId, id);
     note.archived = archived;
 
     if (archived) {
@@ -112,8 +129,8 @@ export class NotesService {
     return this.notesRepository.save(note);
   }
 
-  async remove(id: string): Promise<void> {
-    const note = await this.findOne(id);
+  async remove(userId: string, id: string): Promise<void> {
+    const note = await this.findOne(userId, id);
 
     await this.notesRepository.remove(note);
   }

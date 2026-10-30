@@ -4,8 +4,12 @@ import {
   CreateDateColumn,
   Entity,
   Index,
+  JoinColumn,
+  ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+
+import { User } from '../users/user.entity';
 
 export const CATEGORY_NAME_MAX_LENGTH = 40;
 
@@ -15,6 +19,14 @@ export const CATEGORY_NAME_MAX_LENGTH = 40;
 export class Category {
   @PrimaryGeneratedColumn('uuid')
   id: string;
+
+  @Index()
+  @Column('uuid')
+  userId: string;
+
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'userId' })
+  user: User;
 
   @Column({ length: CATEGORY_NAME_MAX_LENGTH })
   name: string;

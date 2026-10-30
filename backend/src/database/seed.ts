@@ -1,3 +1,11 @@
+import { hash } from 'bcryptjs';
+import { User } from '../users/user.entity';
+import {
+  DEMO_USER_ID,
+  DEMO_EMAIL,
+  DEMO_PASSWORD,
+  DEMO_NAME,
+} from '../users/demo-user';
 import dataSource from './data-source';
 import { Category } from '../categories/category.entity';
 import { Note } from '../notes/note.entity';
@@ -75,21 +83,45 @@ const NOTES: SeedNote[] = [
 async function seed() {
   await dataSource.initialize();
 
+  const users = dataSource.getRepository(User);
+  let demo = await users.findOneBy({ email: DEMO_EMAIL });
+  if (!demo) {
+    demo = await users.save(
+      users.create({
+        id: DEMO_USER_ID,
+        email: DEMO_EMAIL,
+        name: DEMO_NAME,
+        passwordHash: await hash(DEMO_PASSWORD, 10),
+      }),
+    );
+  }
+  const userId = demo.id;
   const notes = dataSource.getRepository(Note);
 
-  if ((await notes.count()) > 0) {
-    console.log('Seed skipped: the database already has notes');
+  if ((await notes.countBy({ userId })) > 0) {
+    console.log('Seed skipped: the demo user already has notes');
     return;
   }
 
-  const savedCategories = await dataSource
-    .getRepository(Category)
-    .save(CATEGORIES.map((category) => ({ ...category })));
+  const categories = dataSource.getRepository(Category);
+  const savedCategories: Category[] = [];
+  for (const category of CATEGORIES) {
+    const existing = await categories
+      .createQueryBuilder('category')
+      .where('category.userId = :userId', { userId })
+      .andWhere('lower(category.name) = lower(:name)', { name: category.name })
+      .getOne();
+    savedCategories.push(
+      existing ??
+        (await categories.save(categories.create({ ...category, userId }))),
+    );
+  }
 
   for (const { categories, ...note } of NOTES) {
     await notes.save(
       notes.create({
         ...note,
+        userId,
         categories: savedCategories.filter(({ name }) =>
           categories.includes(name),
         ),

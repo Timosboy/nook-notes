@@ -1,3 +1,4 @@
+import { CurrentUser } from '../auth/current-user.decorator';
 import {
   Body,
   Controller,
@@ -23,67 +24,94 @@ export class NotesController {
   constructor(private readonly notesService: NotesService) {}
 
   @Get()
-  findAll(@Query() query: ListNotesQuery): Promise<Note[]> {
-    return this.notesService.findAll(query.archived, query.categoryId);
+  findAll(
+    @CurrentUser() userId: string,
+    @Query() query: ListNotesQuery,
+  ): Promise<Note[]> {
+    return this.notesService.findAll(userId, query.archived, query.categoryId);
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseUUIDPipe) id: string): Promise<Note> {
-    return this.notesService.findOne(id);
+  findOne(
+    @CurrentUser() userId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<Note> {
+    return this.notesService.findOne(userId, id);
   }
 
   @Post()
-  create(@Body() dto: CreateNoteDto): Promise<Note> {
-    return this.notesService.create(dto);
+  create(
+    @CurrentUser() userId: string,
+    @Body() dto: CreateNoteDto,
+  ): Promise<Note> {
+    return this.notesService.create(userId, dto);
   }
 
   @Patch(':id')
   update(
+    @CurrentUser() userId: string,
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateNoteDto,
   ): Promise<Note> {
-    return this.notesService.update(id, dto);
+    return this.notesService.update(userId, id, dto);
   }
 
   @Patch(':id/archive')
-  archive(@Param('id', ParseUUIDPipe) id: string): Promise<Note> {
-    return this.notesService.archive(id);
+  archive(
+    @CurrentUser() userId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<Note> {
+    return this.notesService.archive(userId, id);
   }
 
   @Patch(':id/unarchive')
-  unarchive(@Param('id', ParseUUIDPipe) id: string): Promise<Note> {
-    return this.notesService.unarchive(id);
+  unarchive(
+    @CurrentUser() userId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<Note> {
+    return this.notesService.unarchive(userId, id);
   }
 
   @Patch(':id/pin')
-  pin(@Param('id', ParseUUIDPipe) id: string): Promise<Note> {
-    return this.notesService.pin(id);
+  pin(
+    @CurrentUser() userId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<Note> {
+    return this.notesService.pin(userId, id);
   }
 
   @Patch(':id/unpin')
-  unpin(@Param('id', ParseUUIDPipe) id: string): Promise<Note> {
-    return this.notesService.unpin(id);
+  unpin(
+    @CurrentUser() userId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<Note> {
+    return this.notesService.unpin(userId, id);
   }
 
   @Put(':id/categories/:categoryId')
   addCategory(
+    @CurrentUser() userId: string,
     @Param('id', ParseUUIDPipe) id: string,
     @Param('categoryId', ParseUUIDPipe) categoryId: string,
   ): Promise<Note> {
-    return this.notesService.addCategory(id, categoryId);
+    return this.notesService.addCategory(userId, id, categoryId);
   }
 
   @Delete(':id/categories/:categoryId')
   removeCategory(
+    @CurrentUser() userId: string,
     @Param('id', ParseUUIDPipe) id: string,
     @Param('categoryId', ParseUUIDPipe) categoryId: string,
   ): Promise<Note> {
-    return this.notesService.removeCategory(id, categoryId);
+    return this.notesService.removeCategory(userId, id, categoryId);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
-    return this.notesService.remove(id);
+  remove(
+    @CurrentUser() userId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<void> {
+    return this.notesService.remove(userId, id);
   }
 }

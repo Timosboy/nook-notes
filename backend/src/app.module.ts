@@ -7,6 +7,9 @@ import { CategoriesModule } from './categories/categories.module';
 import { NotesModule } from './notes/notes.module';
 import { ImagesModule } from './images/images.module';
 
+import { AuthModule } from './auth/auth.module';
+import { HealthModule } from './health/health.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, load: [configuration] }),
@@ -14,6 +17,8 @@ import { ImagesModule } from './images/images.module';
     NotesModule,
     CategoriesModule,
     ImagesModule,
+    AuthModule,
+    HealthModule,
   ],
 })
 export class AppModule {}

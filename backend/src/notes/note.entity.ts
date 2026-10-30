@@ -3,6 +3,8 @@ import {
   CreateDateColumn,
   Entity,
   Index,
+  JoinColumn,
+  ManyToOne,
   JoinTable,
   ManyToMany,
   OneToMany,
@@ -12,12 +14,22 @@ import {
 import { Category } from '../categories/category.entity';
 import { NoteImage } from '../images/note-image.entity';
 
+import { User } from '../users/user.entity';
+
 export const TITLE_MAX_LENGTH = 120;
 
 @Entity('notes')
 export class Note {
   @PrimaryGeneratedColumn('uuid')
   id: string;
+
+  @Index()
+  @Column('uuid')
+  userId: string;
+
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'userId' })
+  user: User;
 
   @Column({ length: TITLE_MAX_LENGTH })
   title: string;

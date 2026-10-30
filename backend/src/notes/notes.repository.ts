@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Note } from './note.entity';
 
-export type NewNote = Pick<Note, 'title' | 'content' | 'emoji'>;
+export type NewNote = Pick<Note, 'userId' | 'title' | 'content' | 'emoji'>;
 
 @Injectable()
 export class NotesRepository {
@@ -12,12 +12,17 @@ export class NotesRepository {
     private readonly notes: Repository<Note>,
   ) {}
 
-  findAll(archived: boolean, categoryId?: string): Promise<Note[]> {
+  findAll(
+    userId: string,
+    archived: boolean,
+    categoryId?: string,
+  ): Promise<Note[]> {
     const query = this.notes
       .createQueryBuilder('note')
       .leftJoinAndSelect('note.categories', 'category')
       .leftJoinAndSelect('note.images', 'image')
-      .where('note.archived = :archived', { archived })
+      .where('note.userId = :userId', { userId })
+      .andWhere('note.archived = :archived', { archived })
       .orderBy('note.pinned', 'DESC')
       .addOrderBy('note.updatedAt', 'DESC')
       .addOrderBy('category.name', 'ASC')
@@ -38,9 +43,9 @@ export class NotesRepository {
     return query.getMany();
   }
 
-  findById(id: string): Promise<Note | null> {
+  findById(userId: string, id: string): Promise<Note | null> {
     return this.notes.findOne({
-      where: { id },
+      where: { id, userId },
       relations: { categories: true, images: true },
       order: { categories: { name: 'ASC' }, images: { createdAt: 'ASC' } },
     });
@@ -56,15 +61,20 @@ export class NotesRepository {
     return this.notes.save(note);
   }
 
-  async setPinned(id: string, pinned: boolean): Promise<Note | null> {
+  async setPinned(
+    userId: string,
+    id: string,
+    pinned: boolean,
+  ): Promise<Note | null> {
     await this.notes
       .createQueryBuilder()
       .update(Note)
       .set({ pinned, updatedAt: () => '"updatedAt"' })
       .where('id = :id', { id })
+      .andWhere('"userId" = :userId', { userId })
       .execute();
 
-    return this.findById(id);
+    return this.findById(userId, id);
   }
 
   async remove(note: Note): Promise<void> {

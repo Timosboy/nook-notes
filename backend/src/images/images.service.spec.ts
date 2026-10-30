@@ -56,7 +56,7 @@ describe('ImagesService', () => {
     imagesRepository.countByNoteId.mockResolvedValue(0);
     imagesRepository.create.mockResolvedValue(image);
 
-    await expect(service.upload(noteId, file)).resolves.toEqual({
+    await expect(service.upload('user-id', noteId, file)).resolves.toEqual({
       id: image.id,
       filename: image.filename,
       mimeType: 'image/png',
@@ -76,14 +76,14 @@ describe('ImagesService', () => {
     notesService.findOne.mockResolvedValue({ id: 'note-id' });
 
     await expect(
-      service.upload('note-id', {
+      service.upload('user-id', 'note-id', {
         originalname: 'file.txt',
         size: 4,
         buffer: Buffer.from('text'),
       } as Express.Multer.File),
     ).rejects.toThrow(BadRequestException);
     await expect(
-      service.upload('note-id', {
+      service.upload('user-id', 'note-id', {
         originalname: 'file.txt',
         size: 4,
         buffer: Buffer.from('text'),
@@ -97,7 +97,9 @@ describe('ImagesService', () => {
       new NotFoundException('Note not found'),
     );
 
-    await expect(service.upload('note-id')).rejects.toThrow('Note not found');
+    await expect(service.upload('user-id', 'note-id')).rejects.toThrow(
+      'Note not found',
+    );
     expect(imagesRepository.create).not.toHaveBeenCalled();
   });
 
@@ -106,7 +108,7 @@ describe('ImagesService', () => {
     imagesRepository.countByNoteId.mockResolvedValue(30);
 
     await expect(
-      service.upload('note-id', {
+      service.upload('user-id', 'note-id', {
         originalname: 'photo.jpg',
         size: 3,
         buffer: Buffer.from([0xff, 0xd8, 0xff]),
@@ -118,7 +120,7 @@ describe('ImagesService', () => {
   it('rejects a missing file', async () => {
     notesService.findOne.mockResolvedValue({ id: 'note-id' });
 
-    await expect(service.upload('note-id')).rejects.toThrow(
+    await expect(service.upload('user-id', 'note-id')).rejects.toThrow(
       'No image was uploaded',
     );
   });
@@ -126,20 +128,39 @@ describe('ImagesService', () => {
   it('rejects an image that belongs to another note', async () => {
     imagesRepository.findById.mockResolvedValue(null);
 
-    await expect(service.findOne('note-id', 'image-id')).rejects.toThrow(
-      NotFoundException,
-    );
-    await expect(service.findOne('note-id', 'image-id')).rejects.toThrow(
-      'Image not found',
-    );
+    await expect(
+      service.findOne('user-id', 'note-id', 'image-id'),
+    ).rejects.toThrow(NotFoundException);
+    await expect(
+      service.findOne('user-id', 'note-id', 'image-id'),
+    ).rejects.toThrow('Image not found');
   });
+
+  it.each(['findOne', 'remove'] as const)(
+    'checks note ownership before %s',
+    async (method) => {
+      notesService.findOne.mockRejectedValue(
+        new NotFoundException('Note not found'),
+      );
+
+      await expect(
+        service[method]('user-id', 'other-note', 'image-id'),
+      ).rejects.toThrow('Note not found');
+      expect(notesService.findOne).toHaveBeenCalledWith(
+        'user-id',
+        'other-note',
+      );
+      expect(imagesRepository.findById).not.toHaveBeenCalled();
+      expect(imagesRepository.remove).not.toHaveBeenCalled();
+    },
+  );
 
   it('removes an image', async () => {
     const image = { id: 'image-id', noteId: 'note-id' };
     imagesRepository.findById.mockResolvedValue(image);
 
     await expect(
-      service.remove('note-id', 'image-id'),
+      service.remove('user-id', 'note-id', 'image-id'),
     ).resolves.toBeUndefined();
     expect(imagesRepository.remove).toHaveBeenCalledWith(image);
   });

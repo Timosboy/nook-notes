@@ -1,3 +1,4 @@
+import { CurrentUser } from '../auth/current-user.decorator';
 import {
   Controller,
   Delete,
@@ -31,26 +32,28 @@ export class ImagesController {
     }),
   )
   upload(
+    @CurrentUser() userId: string,
     @Param('noteId', ParseUUIDPipe) noteId: string,
     @UploadedFile() file?: Express.Multer.File,
   ) {
-    return this.imagesService.upload(noteId, file);
+    return this.imagesService.upload(userId, noteId, file);
   }
 
   @Get(':imageId')
   async findOne(
+    @CurrentUser() userId: string,
     @Param('noteId', ParseUUIDPipe) noteId: string,
     @Param('imageId', ParseUUIDPipe) imageId: string,
     @Res() response: Response,
   ): Promise<void> {
-    const image = await this.imagesService.findOne(noteId, imageId);
+    const image = await this.imagesService.findOne(userId, noteId, imageId);
 
     response
       .status(HttpStatus.OK)
       .set({
         'Content-Type': image.mimeType,
         'Content-Disposition': 'inline',
-        'Cache-Control': 'public, max-age=31536000, immutable',
+        'Cache-Control': 'private, no-store',
       })
       .send(image.data);
   }
@@ -58,9 +61,10 @@ export class ImagesController {
   @Delete(':imageId')
   @HttpCode(HttpStatus.NO_CONTENT)
   remove(
+    @CurrentUser() userId: string,
     @Param('noteId', ParseUUIDPipe) noteId: string,
     @Param('imageId', ParseUUIDPipe) imageId: string,
   ): Promise<void> {
-    return this.imagesService.remove(noteId, imageId);
+    return this.imagesService.remove(userId, noteId, imageId);
   }
 }
