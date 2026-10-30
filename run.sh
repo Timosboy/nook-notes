@@ -202,14 +202,15 @@ else
   WEB_PID=$!
 fi
 
-wait_for "API is up" 90 curl -sf "http://localhost:$API_PORT/api/notes" \
+wait_for "API is up" 90 curl -sf "http://localhost:$API_PORT/api/health" \
   || { tail -n 30 "$RUN_DIR/backend.log"; die "The API did not start (log: .run/backend.log)."; }
 wait_for "web app is up" 60 curl -sf "http://localhost:$WEB_PORT" \
   || { tail -n 30 "$RUN_DIR/frontend.log"; die "The web app did not start (log: .run/frontend.log)."; }
 
-printf '\n%sNotes is running%s\n' "$BOLD" "$RESET"
+printf '\n%sNook is running%s\n' "$BOLD" "$RESET"
 printf '  App  http://localhost:%s\n' "$WEB_PORT"
 printf '  API  http://localhost:%s/api\n' "$API_PORT"
+printf '  Demo login  demo@nook.app / nook-demo-2026\n'
 if [ -n "$LAN_IP" ]; then
   printf '\n%sOn your phone (same Wi-Fi):%s\n  http://%s:%s\n' "$BOLD" "$RESET" "$LAN_IP" "$WEB_PORT"
 fi

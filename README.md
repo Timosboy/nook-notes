@@ -15,7 +15,11 @@ One command sets up everything and starts the app:
 ./run.sh
 ```
 
-Then open <http://localhost:5173>. The API is at <http://localhost:3000/api>.
+Then open <http://localhost:5173> and sign in with the demo account, or create your own. The API is at <http://localhost:3000/api>.
+
+| Email | Password |
+|---|---|
+| `demo@nook.app` | `nook-demo-2026` |
 
 The script does this, in order, and stops with a clear message if something is missing:
 
@@ -24,7 +28,7 @@ The script does this, in order, and stops with a clear message if something is m
 3. Starts PostgreSQL in Docker and waits until it is healthy.
 4. Installs the dependencies (`npm ci`) in both apps when they are missing or out of date.
 5. Runs the database migrations.
-6. Loads a few demo notes, only if the database is empty.
+6. Creates the demo user and loads a few demo notes for it, only if they are missing.
 7. Starts the API and the web app.
 
 Press `Ctrl+C` to stop both apps. The database container keeps running; `./run.sh --down` stops it (the data is kept in a Docker volume).
@@ -103,6 +107,7 @@ Developed and tested on macOS (Apple silicon). `run.sh` only uses portable bash 
 
 **Extras**
 
+- Login: create an account or use the demo account. Each user only sees their own notes, categories and images.
 - Categories with their own color (a 10 color palette or any custom color), created and edited from the sidebar.
 - Pin notes to the top of the list.
 - Emoji icon for each note, with a searchable picker.
@@ -161,21 +166,26 @@ backend/src
 ├── notes/         controller, service, repository, entity, dto
 ├── categories/    controller, service, repository, entity, dto
 ├── images/        controller, service, repository, entity, image type detection
+├── auth/          register, login, JWT guard, current user decorator
+├── users/         user entity, repository, service, demo user
+├── health/        health check for the host
 ├── common/        global error filter
 ├── config/        environment configuration
 └── database/      data source, migrations, seed
 
 frontend/src
+├── auth/          sign in and sign up screen
 ├── workspace/     the three pane layout and the editor
 ├── notes/         types, API client, list hook
 ├── categories/    chips, picker, sidebar list, form
 ├── emoji/         emoji data and picker
 ├── components/    dialog and toast
-└── lib/           http client, autosave, themes, panels, markdown helpers
+└── lib/           http client, session, autosave, themes, panels, markdown helpers
 ```
 
 ### Decisions worth knowing
 
+- **Login with a bearer token.** Passwords are hashed with bcrypt. Signing in returns a JWT (valid for 7 days) that the app sends as `Authorization: Bearer`. A global guard protects every route except register, login and health. Notes and categories belong to a user, and a note of another user answers 404, the same as a missing one. Images are fetched with the token too, so the browser shows them from memory instead of a public URL.
 - **Migrations, not `synchronize`.** The schema only changes through the migrations in `backend/src/database/migrations`. `run.sh` applies them.
 - **Validation.** Every request body goes through DTOs with `class-validator`, with `whitelist` and `forbidNonWhitelisted` on. Errors always look like `{ statusCode, message, path, timestamp }`.
 - **Images live in PostgreSQL** (`bytea`), so everything persists in the database and `run.sh` needs no extra storage. The type is detected from the file content, not from what the browser says. In the note text an image is plain Markdown, `![name](/api/notes/<noteId>/images/<imageId>)`, and the editor resolves that path against the API address. Images that are no longer in the text are removed when you leave the note.
@@ -187,10 +197,14 @@ frontend/src
 
 ## API
 
-All routes are under `/api`. Ids are UUIDs.
+All routes are under `/api`. Ids are UUIDs. Every route except the first three needs `Authorization: Bearer <token>`.
 
 | Method | Route | Description |
 |---|---|---|
+| `POST` | `/auth/register` | Create an account (`name`, `email`, `password` of 8 or more characters), returns `{ token, user }` |
+| `POST` | `/auth/login` | Sign in (`email`, `password`), returns `{ token, user }` |
+| `GET` | `/health` | Health check |
+| `GET` | `/auth/me` | The signed in user |
 | `GET` | `/notes?archived=false&categoryId=` | List notes (pinned first, then latest) |
 | `GET` | `/notes/:id` | Get a note |
 | `POST` | `/notes` | Create a note (`title`, optional `content`, `emoji`) |
@@ -214,15 +228,16 @@ All routes are under `/api`. Ids are UUIDs.
 
 | Table | Columns |
 |---|---|
-| `notes` | `id`, `title` (max 120), `content`, `emoji`, `archived`, `pinned`, `createdAt`, `updatedAt` |
-| `categories` | `id`, `name` (unique, case insensitive), `color` (`#rrggbb`), `createdAt` |
+| `users` | `id`, `email` (unique, lowercase), `name`, `passwordHash` (bcrypt), `createdAt` |
+| `notes` | `id`, `userId` (cascade), `title` (max 120), `content`, `emoji`, `archived`, `pinned`, `createdAt`, `updatedAt` |
+| `categories` | `id`, `userId` (cascade), `name` (unique per user, case insensitive), `color` (`#rrggbb`), `createdAt` |
 | `note_categories` | `noteId`, `categoryId` (many to many, deleted in cascade) |
 | `note_images` | `id`, `noteId` (cascade), `filename`, `mimeType`, `size`, `data`, `createdAt` |
 
 ## Tests and checks
 
 ```bash
-npm --prefix backend test           # 60 unit tests (services, DTOs, image detection)
+npm --prefix backend test           # 79 unit tests (services, auth, guard, DTOs, image detection)
 npm --prefix backend run build
 npm --prefix backend run lint       # ESLint (applies safe fixes)
 npm --prefix frontend run build     # type check and bundle
@@ -240,7 +255,17 @@ The frontend has no automated UI tests. It was checked by hand and with browser 
 
 ## Login and deployment
 
-The app has no login screen, and it is not deployed.
+**Login.** Use the demo account `demo@nook.app` / `nook-demo-2026`, or create an account from the sign in screen. The theme switch is on that screen too.
+
+**Live version.** The URL will be added here once the app is deployed.
+
+| Part | Host | Configuration |
+|---|---|---|
+| Web app | Vercel | Root directory `frontend`, variable `VITE_API_URL` = the API URL ending in `/api` |
+| API | Render | `render.yaml` (Blueprint): builds `backend`, runs the migrations, then starts the API |
+| Database | Supabase (PostgreSQL) | Session pooler connection with SSL (`DB_SSL=true`) |
+
+The free Render plan sleeps after 15 minutes without traffic, so the first request can take about 30 seconds. Row level security is enabled on every table, so the Supabase public data API cannot read or write them; only the API, which connects as the table owner, can.
 
 ## Credits
 
