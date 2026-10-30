@@ -7,18 +7,73 @@ A small full stack notes app: write notes, archive them, sort them with colored 
 - `backend/`: REST API, NestJS + TypeORM + PostgreSQL
 - `frontend/`: single page app, React + Vite + TypeScript
 
-## Run it
+## Live version
 
-One command sets up everything and starts the app:
+Open **<https://nook.timosboy.lat>** and sign in with this account:
+
+| Email | Password |
+|---|---|
+| `ensolvers@test.com` | `ensolvers-2026` |
+
+The account already has a few notes and categories, and it is yours to edit, archive or delete anything. You can also press **Try the demo account** on the sign in screen, or create your own account with **Create an account**. Each account only sees its own notes.
+
+> [!IMPORTANT]
+> **The first sign in can take up to a minute.** The API runs on the free plan of Render, which turns the server off after 15 minutes without traffic. The first request after that wakes it up, so the button keeps loading for 30 to 60 seconds. This is the free hosting starting the server, not an error in the app. Once it is awake, everything responds right away.
+
+### How it is hosted
+
+The exercise repository is not mine, so I could not connect it to Vercel and Render: both deploy from a GitHub repository owned by the account. The live version runs from this repository, my personal copy of the same code.
+
+| Part | Host | How it is set up |
+|---|---|---|
+| Web app | [Vercel](https://vercel.com), free plan | Builds `frontend/` with `VITE_API_URL` pointing to the API. Served at `nook.timosboy.lat`, a subdomain of my own domain |
+| API | [Render](https://render.com), free plan | `render.yaml` (Blueprint) builds `backend/`, runs the migrations on every deploy, then starts the API. [Health check](https://nook-api-4z60.onrender.com/api/health) |
+| Database | [Supabase](https://supabase.com) PostgreSQL, free plan | The API connects through the session pooler with SSL (`DB_SSL=true`) |
+
+How it was deployed:
+
+1. Created a Supabase project and copied its connection values (host, user, password).
+2. In Render, created a Blueprint from the repository. It reads `render.yaml` and asks for the database user and password and the web app address; Render generates the `JWT_SECRET` itself.
+3. In Vercel, imported the repository with `frontend` as the root directory and `VITE_API_URL` set to the Render URL plus `/api`.
+4. Added `nook.timosboy.lat` in Vercel and its CNAME record in Cloudflare, my DNS provider, and set `FRONTEND_URL` in Render to that address so the API accepts its requests (CORS).
+
+Every push to `main` deploys both apps again. The migrations create the tables, the demo account and the account above. Row level security is enabled on every table, so the Supabase public data API cannot read or write them; only the API, which connects as the table owner, can.
+
+## Screenshots
+
+| Sign in | Home |
+|---|---|
+| ![Sign in screen](docs/screenshots/login.png) | ![Home with recent notes](docs/screenshots/home.png) |
+
+| Filter by category | Archived notes |
+|---|---|
+| ![Notes filtered by the Travel category](docs/screenshots/categories.png) | ![Archived notes](docs/screenshots/archived.png) |
+
+| Block menu (type `/`) | Night theme |
+|---|---|
+| ![Slash menu in a note](docs/screenshots/slash.png) | ![Night theme](docs/screenshots/night.png) |
+
+| Reading theme |
+|---|
+| ![Reading theme](docs/screenshots/reading.png) |
+
+| Mobile sign in | Mobile list | Mobile editor |
+|---|---|---|
+| <img src="docs/screenshots/mobile-login.png" width="250" alt="Mobile sign in"> | <img src="docs/screenshots/mobile-list.png" width="250" alt="Mobile list"> | <img src="docs/screenshots/mobile-editor.png" width="250" alt="Mobile editor"> |
+
+## Run it locally
+
+From a fresh machine you only need **Node 22 or newer** and **Docker** running (versions in [Requirements](#requirements)). Then, from the root of the repository:
 
 ```bash
 ./run.sh
 ```
 
-Then open <http://localhost:5173> and sign in with the demo account, or create your own. The API is at <http://localhost:3000/api>.
+Open <http://localhost:5173> and sign in with either account. Locally both get the same sample notes. The API is at <http://localhost:3000/api>.
 
 | Email | Password |
 |---|---|
+| `ensolvers@test.com` | `ensolvers-2026` |
 | `demo@nook.app` | `nook-demo-2026` |
 
 The script does this, in order, and stops with a clear message if something is missing:
@@ -28,14 +83,14 @@ The script does this, in order, and stops with a clear message if something is m
 3. Starts PostgreSQL in Docker and waits until it is healthy.
 4. Installs the dependencies (`npm ci`) in both apps when they are missing or out of date.
 5. Runs the database migrations.
-6. Creates the demo user and loads a few demo notes for it, only if they are missing.
+6. Creates the two accounts above and loads a few sample notes for each, only if they have none.
 7. Starts the API and the web app.
 
 Press `Ctrl+C` to stop both apps. The database container keeps running; `./run.sh --down` stops it (the data is kept in a Docker volume).
 
 | Option | What it does |
 |---|---|
-| `--no-seed` | Do not load the demo notes |
+| `--no-seed` | Do not load the sample notes |
 | `--lan` | Also open the app to your local network, to try it on a phone (see below) |
 | `--down` | Stop the database container and exit |
 | `--help` | Show the usage |
@@ -107,7 +162,7 @@ Developed and tested on macOS (Apple silicon). `run.sh` only uses portable bash 
 
 **Extras**
 
-- Login: create an account or use the demo account. Each user only sees their own notes, categories and images.
+- Login: create an account, or use one of the two sample accounts. Each user only sees their own notes, categories and images.
 - Categories with their own color (a 10 color palette or any custom color), created and edited from the sidebar.
 - Pin notes to the top of the list.
 - Emoji icon for each note, with a searchable picker.
@@ -119,14 +174,6 @@ Developed and tested on macOS (Apple silicon). `run.sh` only uses portable bash 
 - Light, night and reading themes (the reading theme uses warm paper tones with no white).
 - Hide the sidebar and the note list.
 - Mobile layout with a formatting bar above the keyboard.
-
-| Night | Reading |
-|---|---|
-| ![Night theme](docs/screenshots/night.png) | ![Reading theme](docs/screenshots/reading.png) |
-
-| Mobile list | Mobile editor |
-|---|---|
-| <img src="docs/screenshots/mobile-list.png" width="280" alt="Mobile list"> | <img src="docs/screenshots/mobile-editor.png" width="280" alt="Mobile editor"> |
 
 ## Keyboard shortcuts
 
@@ -167,7 +214,7 @@ backend/src
 ├── categories/    controller, service, repository, entity, dto
 ├── images/        controller, service, repository, entity, image type detection
 ├── auth/          register, login, JWT guard, current user decorator
-├── users/         user entity, repository, service, demo user
+├── users/         user entity, repository, service, sample accounts
 ├── health/        health check for the host
 ├── common/        global error filter
 ├── config/        environment configuration
@@ -252,20 +299,6 @@ The frontend has no automated UI tests. It was checked by hand and with browser 
 - **Docker is not running.** On macOS the script tries to open Docker Desktop. On Linux start the daemon first.
 - **Node is too old.** Use Node 22 or newer. With nvm: `nvm install && nvm use`.
 - **Start over with an empty database.** `docker compose down -v` removes the container and its data; then run `./run.sh` again.
-
-## Login and deployment
-
-**Login.** Use the demo account `demo@nook.app` / `nook-demo-2026`, or create an account from the sign in screen. The theme switch is on that screen too.
-
-**Live version.** [nook.timosboy.lat](https://nook.timosboy.lat) (API at [nook-api-4z60.onrender.com](https://nook-api-4z60.onrender.com/api/health)). Sign in with the demo account above.
-
-| Part | Host | Configuration |
-|---|---|---|
-| Web app | Vercel | Root directory `frontend`, variable `VITE_API_URL` = the API URL ending in `/api` |
-| API | Render | `render.yaml` (Blueprint): builds `backend`, runs the migrations, then starts the API |
-| Database | Supabase (PostgreSQL) | Session pooler connection with SSL (`DB_SSL=true`) |
-
-The free Render plan sleeps after 15 minutes without traffic, so the first request can take about 30 seconds. Row level security is enabled on every table, so the Supabase public data API cannot read or write them; only the API, which connects as the table owner, can.
 
 ## Credits
 
