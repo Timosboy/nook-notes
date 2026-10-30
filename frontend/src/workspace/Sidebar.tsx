@@ -36,7 +36,6 @@ export function Sidebar({ view, counts, creating, onViewChange, onCreate, sideba
           <div className="sidebar-brand-row">
             <AppLogo />
             <div className="panel-header-controls">
-              <AccountMenu />
               <AnimatePresence initial={false}>
                 {sidebarOpen && !listOpen && (
                   <motion.button
@@ -77,6 +76,9 @@ export function Sidebar({ view, counts, creating, onViewChange, onCreate, sideba
             <Plus size={16} weight="bold" />
             New note
           </button>
+          <div className="sidebar-account-avatar">
+            <AccountMenu variant="avatar" />
+          </div>
         </div>
 
         <nav className="sidebar-nav" aria-label="Views">
@@ -95,6 +97,10 @@ export function Sidebar({ view, counts, creating, onViewChange, onCreate, sideba
         </nav>
 
         {children}
+
+        <div className="sidebar-account">
+          <AccountMenu variant="row" />
+        </div>
 
         <div className="sidebar-footer">
           <BrandCredit />

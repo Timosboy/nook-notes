@@ -68,6 +68,7 @@
 
 .sidebar-new {
   justify-content: center;
+  white-space: nowrap;
 }
 
 .sidebar-nav {
@@ -456,6 +457,7 @@
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
+    gap: 8px;
   }
 
   .sidebar-brand-row {

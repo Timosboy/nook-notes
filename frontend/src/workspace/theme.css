@@ -4,8 +4,17 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  padding: 0 10px 2px;
+}
+
+.sidebar-account {
   margin-top: auto;
-  padding: 12px 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.sidebar-account-avatar {
+  display: none;
 }
 
 @container (max-width: 199px) {
@@ -97,8 +106,13 @@
 }
 
 @media (max-width: 820px) {
-  .sidebar-footer {
+  .sidebar-footer,
+  .sidebar-account {
     display: none;
+  }
+
+  .sidebar-account-avatar {
+    display: flex;
   }
 
   .theme-cycle {
