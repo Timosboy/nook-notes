@@ -257,7 +257,7 @@ The frontend has no automated UI tests. It was checked by hand and with browser 
 
 **Login.** Use the demo account `demo@nook.app` / `nook-demo-2026`, or create an account from the sign in screen. The theme switch is on that screen too.
 
-**Live version.** The URL will be added here once the app is deployed.
+**Live version.** [frontend-4ni6.vercel.app](https://frontend-4ni6.vercel.app) (API at [nook-api-4z60.onrender.com](https://nook-api-4z60.onrender.com/api/health)). Sign in with the demo account above.
 
 | Part | Host | Configuration |
 |---|---|---|

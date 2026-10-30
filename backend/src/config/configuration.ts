@@ -13,7 +13,7 @@ export default () => {
     port: Number(process.env.PORT ?? 3000),
     frontendUrls: (process.env.FRONTEND_URL ?? 'http://localhost:5173')
       .split(',')
-      .map((url) => url.trim())
+      .map((url) => url.trim().replace(/\/+$/, ''))
       .filter(Boolean),
     database: {
       host: process.env.DB_HOST ?? 'localhost',
