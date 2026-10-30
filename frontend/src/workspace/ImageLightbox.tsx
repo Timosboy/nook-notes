@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { CaretLeft, CaretRight, X } from '@phosphor-icons/react'
-import { resolveImageUrl } from '../lib/imageUrl'
+import { useImageSource } from '../lib/imageUrl'
 import './images.css'
 
 export type LightboxImage = { src: string; alt: string }
@@ -9,6 +9,11 @@ type Props = {
   images: LightboxImage[]
   activeIndex: number | null
   onChange: (index: number | null) => void
+}
+
+function LightboxPicture({ src, alt }: LightboxImage) {
+  const url = useImageSource(src)
+  return url ? <img src={url} alt={alt} className="lightbox-image" /> : <span className="lightbox-image lightbox-loading" aria-label="Loading image" />
 }
 
 export function ImageLightbox({ images, activeIndex, onChange }: Props) {
@@ -57,7 +62,7 @@ export function ImageLightbox({ images, activeIndex, onChange }: Props) {
               <CaretLeft size={24} weight="bold" />
             </button>
           )}
-          <img src={resolveImageUrl(active.src)} alt={active.alt} className="lightbox-image" />
+          <LightboxPicture src={active.src} alt={active.alt} />
           {images.length > 1 && (
             <button className="lightbox-nav lightbox-next" aria-label="Next image" onClick={() => move(1)}>
               <CaretRight size={24} weight="bold" />

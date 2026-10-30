@@ -69,6 +69,13 @@
   object-fit: contain;
 }
 
+.lightbox-loading {
+  width: min(70vw, 560px);
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, #ffffff 10%, transparent);
+}
+
 .lightbox-close,
 .lightbox-nav {
   position: absolute;

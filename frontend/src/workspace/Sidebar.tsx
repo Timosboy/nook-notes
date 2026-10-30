@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Archive, Notepad, Plus, Rows, SidebarSimple, type Icon } from '@phosphor-icons/react'
 import { AnimatePresence, motion } from 'motion/react'
+import { AccountMenu } from './AccountMenu'
 import { AppLogo } from './AppLogo'
 import { BrandCredit } from './BrandCredit'
 import { ThemeCycleButton, ThemeSwitch } from './ThemeSwitch'
@@ -35,6 +36,7 @@ export function Sidebar({ view, counts, creating, onViewChange, onCreate, sideba
           <div className="sidebar-brand-row">
             <AppLogo />
             <div className="panel-header-controls">
+              <AccountMenu />
               <AnimatePresence initial={false}>
                 {sidebarOpen && !listOpen && (
                   <motion.button

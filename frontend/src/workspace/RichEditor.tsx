@@ -5,7 +5,7 @@ import { Markdown } from '@tiptap/markdown'
 import { Placeholder } from '@tiptap/extensions'
 import { EditorContent, useEditor, type Editor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
-import { resolveImageUrl } from '../lib/imageUrl'
+import { loadImage, resolveImageUrl } from '../lib/imageUrl'
 import { SLASH_PICK_IMAGE_EVENT, SlashCommand } from './slashCommand'
 import './richeditor.css'
 
@@ -46,6 +46,44 @@ export function RichEditor({ initialContent, onChange, onPasteImages, onDropImag
                 'data-src': attributes.src,
               }),
             },
+          }
+        },
+        addNodeView() {
+          return ({ node }) => {
+            const image = document.createElement('img')
+            image.loading = 'lazy'
+            image.draggable = true
+            let current = node
+
+            function render() {
+              const src: string = current.attrs.src ?? ''
+              image.alt = current.attrs.alt ?? ''
+              if (current.attrs.title) image.title = current.attrs.title
+              else image.removeAttribute('title')
+              if (image.dataset.src === src) return
+              image.dataset.src = src
+              image.removeAttribute('src')
+              image.classList.add('is-loading')
+              loadImage(src).then((url) => {
+                if (image.dataset.src !== src) return
+                image.src = url
+                image.classList.remove('is-loading')
+              }).catch(() => {
+                image.classList.remove('is-loading')
+                image.classList.add('is-broken')
+              })
+            }
+
+            render()
+            return {
+              dom: image,
+              update: (next) => {
+                if (next.type !== current.type) return false
+                current = next
+                render()
+                return true
+              },
+            }
           }
         },
       }),

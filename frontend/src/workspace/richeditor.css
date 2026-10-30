@@ -170,6 +170,23 @@
   cursor: zoom-in;
 }
 
+.rich-editor .document-body img.is-loading,
+.rich-editor .document-body img.is-broken {
+  width: min(100%, 420px);
+  aspect-ratio: 4 / 3;
+  background: var(--surface-muted);
+}
+
+.rich-editor .document-body img.is-loading {
+  animation: image-pulse 1.4s var(--ease-in-out) infinite;
+}
+
+@keyframes image-pulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+
 .rich-editor .document-body img.ProseMirror-selectednode {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
